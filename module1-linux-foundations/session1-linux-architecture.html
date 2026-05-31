@@ -25,9 +25,15 @@
   --white: #f0f4f8;
   --muted: #64748b;
   --text: #cbd5e1;
+  --nav-space: 7rem;
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar { width: 0; height: 0; }
 
 body {
   font-family: 'Fraunces', Georgia, serif;
@@ -36,7 +42,10 @@ body {
   overflow: hidden;
   height: 100vh;
   width: 100vw;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+body::-webkit-scrollbar { width: 0; height: 0; }
 
 /* ── SLIDE ENGINE ── */
 .deck { width: 100vw; height: 100vh; position: relative; }
@@ -53,8 +62,16 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 6rem;
+  padding-bottom: calc(var(--nav-space) + env(safe-area-inset-bottom));
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
 }
+.slide.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+.slide::-webkit-scrollbar { width: 0; height: 0; }
 
 .slide.active {
   opacity: 1;
@@ -64,7 +81,7 @@ body {
 /* ── NAV ── */
 .nav {
   position: fixed;
-  bottom: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -722,6 +739,16 @@ code {
   flex-direction: column;
   justify-content: center;
 }
+.s8-right,
+.fhs-tree {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.s8-right::-webkit-scrollbar,
+.fhs-tree::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
 .timeline-incident {
   position: relative;
   padding-left: 2rem;
@@ -836,6 +863,16 @@ code {
   font-size: 11.5px;
   color: var(--muted);
   line-height: 1.9;
+}
+.term-body,
+.ld-example,
+.bd-cmd,
+.fhs-files,
+.ud-file,
+.lab-cmd,
+.cmd-list {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .ud-file .key { color: var(--blue); }
 .ud-file .val { color: var(--green); }
@@ -986,6 +1023,10 @@ code {
 
 
 @media (max-width: 768px) {
+  :root {
+    --nav-space: 8rem;
+  }
+
   html, body {
     width: 100%;
     height: auto;
@@ -1017,7 +1058,7 @@ code {
     overflow-y: auto !important;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 7rem;
+    padding-bottom: calc(var(--nav-space) + env(safe-area-inset-bottom));
   }
 
   .slide.active {
@@ -1034,7 +1075,7 @@ code {
   .nav {
     left: 50%;
     transform: translateX(-50%);
-    bottom: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
     width: calc(100vw - 1.5rem);
     max-width: 560px;
     flex-wrap: wrap;
@@ -1084,6 +1125,8 @@ code {
 
   .s2-left,
   .s2-right,
+  .s8-left,
+  .s8-right,
   .s9-left,
   .s9-right {
     width: 100%;
@@ -1092,18 +1135,33 @@ code {
   }
 
   .s2-left,
+  .s8-left,
   .s9-left {
     border-bottom: 1px solid var(--border);
   }
 
   #s3,
+  #s4,
   #s5,
   #s6,
   #s7,
+  #s9,
   #s10,
   #s11,
   #s12 {
     padding: 2rem 1.25rem;
+  }
+
+  #s3 > div,
+  #s4 > div,
+  #s5 > div,
+  #s6 > div,
+  #s7 > div,
+  #s9 > div,
+  #s10 > div,
+  #s11 > div {
+    padding: 0;
+    height: auto;
   }
 
   .timeline {
@@ -1148,6 +1206,18 @@ code {
   .inode-visual,
   .link-detail {
     width: 100%;
+  }
+
+  .systemd-units {
+    width: 100%;
+  }
+
+  .cmd-row {
+    flex-wrap: wrap;
+  }
+
+  .cmd-name {
+    min-width: 0;
   }
 
   .layer:hover,
@@ -1208,6 +1278,22 @@ code {
 
   .s12-next {
     max-width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .distros-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cmd-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .cmd-name {
+    min-width: 0;
   }
 }
 
@@ -1797,6 +1883,57 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === 'Space') { e.preventDefault(); next(); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
 });
+
+// Drag-to-scroll (mouse) while keeping clicks on interactive elements
+const dragIgnoreSelector = 'button, a, input, textarea, select, label, .nav, .nav *, .tl-event, .layer, .fhs-tree-item, .boot-btn, .unit-card, .q-opt, .distro-card, .boot-step';
+function shouldIgnoreDrag(target) {
+  return !!target.closest(dragIgnoreSelector);
+}
+
+function enableDragScroll(slide) {
+  let isDown = false;
+  let startY = 0;
+  let startScroll = 0;
+  let moved = false;
+
+  slide.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    if (shouldIgnoreDrag(e.target)) return;
+    isDown = true;
+    moved = false;
+    startY = e.clientY;
+    startScroll = slide.scrollTop;
+    slide.setPointerCapture(e.pointerId);
+    slide.classList.add('dragging');
+  });
+
+  slide.addEventListener('pointermove', e => {
+    if (!isDown) return;
+    const dy = e.clientY - startY;
+    if (Math.abs(dy) > 2) moved = true;
+    slide.scrollTop = startScroll - dy;
+  });
+
+  function endDrag(e) {
+    if (!isDown) return;
+    isDown = false;
+    slide.classList.remove('dragging');
+    if (slide.hasPointerCapture(e.pointerId)) slide.releasePointerCapture(e.pointerId);
+  }
+
+  slide.addEventListener('pointerup', endDrag);
+  slide.addEventListener('pointercancel', endDrag);
+
+  slide.addEventListener('click', e => {
+    if (moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      moved = false;
+    }
+  });
+}
+
+document.querySelectorAll('.slide').forEach(enableDragScroll);
 
 // ── TIMELINE (slide 3) ──
 const tlData = [
