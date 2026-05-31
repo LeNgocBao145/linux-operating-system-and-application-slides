@@ -315,75 +315,296 @@ code{font-family:'IBM Plex Mono',monospace;background:rgba(245,158,11,0.1);color
 
 
 @media (max-width: 768px) {
+  :root {
+    --mobile-nav-space: 7.25rem;
+  }
+
   html, body {
     width: 100%;
-    height: auto;
-    min-height: 100%;
+    height: 100%;
     overflow-x: hidden;
-    overflow-y: auto !important;
+    overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
   }
 
   body {
-    position: relative;
-    min-height: 100dvh;
+    height: 100dvh;
   }
 
   .deck {
     width: 100%;
-    min-height: 100dvh;
-    height: auto;
-    overflow: visible;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   .slide {
-    position: relative;
-    inset: auto;
-    min-height: 100dvh;
-    height: auto;
+    display: none;
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto !important;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 7rem;
+    padding: 1.4rem 1rem 1.4rem !important;
+    touch-action: pan-y;
+  }
+
+  .slide::after {
+    content: "";
+    display: block;
+    flex: 0 0 calc(var(--mobile-nav-space) + env(safe-area-inset-bottom));
+  }
+
+  #s1::after {
+    display: none;
   }
 
   .slide.active {
     display: flex;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 
   .slide > * {
     min-height: 0;
   }
 
+  .s1-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding-inline: 0.25rem;
+    overflow-wrap: anywhere;
+  }
+
+  .s1-session {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    line-height: 1.6;
+    padding-inline: 0.5rem;
+  }
+
+  .s1-title {
+    font-size: clamp(32px, 10vw, 40px);
+    line-height: 1.08;
+  }
+
+  .s1-glow {
+    width: 360px;
+    height: 360px;
+  }
+
+  .s14-glow {
+    width: 360px;
+    height: 360px;
+  }
+
+  .s1-sub {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    margin-inline: auto;
+    max-width: 320px;
+    padding-inline: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+
+  .chips {
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 330px;
+    margin-inline: auto;
+    padding-inline: 0.4rem;
+  }
+
+  .chip {
+    font-size: 9px;
+    padding: 5px 9px;
+    max-width: 100%;
+  }
+
+  #s2,
+  #s6,
+  #s8,
+  #s9,
+  #s12 {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .s2-left,
+  .s2-right,
+  .s6-left,
+  .s6-right,
+  .inode-visual,
+  .link-detail,
+  .s9-left,
+  .s9-right,
+  .bash-left,
+  .bash-right {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: none;
+    padding: 1rem;
+    border-right: 0;
+    border-left: 0;
+  }
+
+  .cmd-explorer,
+  .grep-lab,
+  .sed-live,
+  .xargs-split,
+  .labs-grid,
+  .redir-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 1rem;
+  }
+
+  .cmd-explorer > *,
+  .grep-lab > *,
+  .sed-live > *,
+  .xargs-split > *,
+  .labs-grid > *,
+  .redir-grid > *,
+  .link-detail > *,
+  .bash-right > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #s8 > div,
+  #s12 > div {
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  #s8 > div > div[style*="display:flex"],
+  #s12 > div > div[style*="display:flex"] {
+    flex-direction: column !important;
+    gap: 1rem !important;
+    min-height: 0;
+  }
+
+  .cmd-list-panel {
+    max-height: 260px;
+  }
+
+  .pipe-stage {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .ps-arrow {
+    justify-content: center;
+    padding: 0;
+    transform: rotate(90deg);
+  }
+
+  .sd-cols {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .sd-col:first-child {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .am-row,
+  .process-row,
+  .pipeline-step,
+  .lab-hdr {
+    align-items: flex-start;
+  }
+
+  .am-row {
+    flex-wrap: wrap;
+  }
+
+  .am-pattern {
+    min-width: auto;
+  }
+
+  .term,
+  .cd-example,
+  .go-body,
+  .awk-output,
+  .sd-col,
+  .result-box,
+  .cb-code,
+  .find-output,
+  .bp-body,
+  .lab-cmd,
+  .ldc-term,
+  .inode-record {
+    overflow-x: auto;
+    white-space: pre;
+    max-width: 100%;
+  }
+
+  .cd-top,
+  .ld-card,
+  .comparison-box,
+  .quiz-q,
+  .lab-card,
+  .s14-next {
+    padding: 1rem;
+  }
+
+  #s13 > div {
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  h2,
+  .s14-title {
+    font-size: clamp(24px, 8vw, 34px) !important;
+    line-height: 1.15;
+  }
+
   .nav {
     left: 50%;
     transform: translateX(-50%);
-    bottom: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
     width: calc(100vw - 1.5rem);
     max-width: 560px;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.85rem;
+    gap: 0.35rem;
+    padding: 0.45rem 0.65rem;
   }
 
   .nav-btn {
-    font-size: 11px;
-    padding: 5px 12px;
+    font-size: 9px;
+    padding: 5px 8px;
   }
 
-  .home-btn{min-width:2.6rem;padding-inline:.8rem}
+  .home-btn{min-width:2rem;padding-inline:.55rem}
 
   .slide-counter {
-    min-width: 52px;
+    min-width: 42px;
+    font-size: 10px;
   }
 
   .dots,
   .dot-nav {
-    max-width: 200px;
+    display: none;
+    max-width: 128px;
+    justify-content: center;
+  }
+
+  .dot {
+    width: 4px;
+    height: 4px;
+  }
+
+  .dot.active {
+    width: 14px;
   }
 }
 
