@@ -1,0 +1,2178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Network Config & SSH — Module 3 · Session 5</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #07090f;
+        --bg2: #0d1220;
+        --bg3: #111828;
+        --bg4: #172030;
+        --b: rgba(80, 140, 255, 0.1);
+        --b2: rgba(80, 140, 255, 0.18);
+        --text: #ccd8f0;
+        --muted: #3d5080;
+        --dim: #243060;
+        --navy: #4d80ff;
+        --navy2: #7ba8ff;
+        --cyan: #00d4ff;
+        --cyan2: #66e8ff;
+        --mint: #00e5b0;
+        --mint2: #66f5d0;
+        --rose: #ff5580;
+        --rose2: #ff88aa;
+        --gold: #ffc940;
+        --gold2: #ffd870;
+        --mono: "Space Mono", monospace;
+        --sans: "Outfit", sans-serif;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+      }
+
+      /* subtle grid bg */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(77, 128, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(77, 128, 255, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      #progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--navy),
+          var(--cyan),
+          var(--mint)
+        );
+        transition: width 0.4s ease;
+        z-index: 999;
+      }
+
+      .deck {
+        width: 100vw;
+        height: 100dvh;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        padding: 44px 60px 80px;
+        opacity: 0;
+        height: 100dvh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+      }
+      .slide.active {
+        display: flex;
+        opacity: 1;
+      }
+
+      .lbl {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .lbl::before {
+        content: "//";
+        color: var(--dim);
+      }
+
+      h1 {
+        font-size: 54px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+      h2 {
+        font-size: 35px;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.025em;
+      }
+
+      .n {
+        color: var(--navy2);
+      }
+      .cy {
+        color: var(--cyan);
+      }
+      .m {
+        color: var(--mint);
+      }
+      .r {
+        color: var(--rose);
+      }
+      .g {
+        color: var(--gold);
+      }
+
+      .code {
+        background: #04060c;
+        border: 1px solid var(--b2);
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 2;
+      }
+      .cc {
+        color: #1e2e50;
+      }
+      .cp {
+        color: var(--muted);
+      }
+      .cm {
+        color: var(--mint);
+      }
+      .cf {
+        color: var(--gold);
+      }
+      .ca {
+        color: var(--navy2);
+      }
+      .ck {
+        color: var(--rose2);
+      }
+      .cv {
+        color: var(--cyan2);
+      }
+      .co {
+        color: #253550;
+      }
+      .cg {
+        color: var(--mint2);
+      }
+
+      .card {
+        background: var(--bg2);
+        border: 1px solid var(--b);
+        border-radius: 10px;
+        padding: 18px 22px;
+      }
+      .ctitle {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 10px;
+      }
+
+      .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .grid3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 14px;
+      }
+
+      .note {
+        border-left: 2px solid var(--mint);
+        padding: 9px 14px;
+        background: rgba(0, 229, 176, 0.05);
+        border-radius: 0 7px 7px 0;
+        font-size: 13px;
+        color: #6a9898;
+        line-height: 1.7;
+      }
+      .warn {
+        border-left: 2px solid var(--gold);
+        padding: 9px 14px;
+        background: rgba(255, 201, 64, 0.05);
+        border-radius: 0 7px 7px 0;
+        font-size: 13px;
+        color: #909070;
+        line-height: 1.7;
+      }
+      .info {
+        border-left: 2px solid var(--navy);
+        padding: 9px 14px;
+        background: rgba(77, 128, 255, 0.05);
+        border-radius: 0 7px 7px 0;
+        font-size: 13px;
+        color: #6a7a98;
+        line-height: 1.7;
+      }
+
+      .tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 10px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        border: 1px solid;
+        margin: 2px;
+      }
+      .tn {
+        border-color: var(--navy);
+        color: var(--navy2);
+      }
+      .tc {
+        border-color: var(--cyan);
+        color: var(--cyan2);
+      }
+      .tm {
+        border-color: var(--mint);
+        color: var(--mint2);
+      }
+      .tr {
+        border-color: var(--rose);
+        color: var(--rose2);
+      }
+      .tg {
+        border-color: var(--gold);
+        color: var(--gold2);
+      }
+
+      .body {
+        font-size: 14px;
+        line-height: 1.8;
+        color: #607088;
+      }
+
+      .ft {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+      }
+      .ft th {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 7px 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--b2);
+      }
+      .ft td {
+        padding: 8px 10px;
+        border-bottom: 1px solid rgba(77, 128, 255, 0.05);
+      }
+      .ft tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* NAV */
+      .nav {
+        position: fixed;
+        bottom: 26px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--bg2);
+        border: 1px solid var(--b2);
+        border-radius: 40px;
+        padding: 9px 18px;
+        z-index: 100;
+      }
+      .nbtn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 15px;
+        padding: 4px 7px;
+        border-radius: 5px;
+        transition:
+          color 0.2s,
+          background 0.2s;
+      }
+      .nbtn:hover {
+        color: var(--text);
+        background: var(--bg3);
+      }
+      .ncnt {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        min-width: 42px;
+        text-align: center;
+      }
+      .dots {
+        display: flex;
+        gap: 5px;
+      }
+      .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--b2);
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+      }
+      .dot.on {
+        background: var(--cyan);
+        transform: scale(1.4);
+        box-shadow: 0 0 5px var(--cyan);
+      }
+      .kbhint {
+        position: fixed;
+        bottom: 26px;
+        right: 36px;
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--dim);
+      }
+
+      /* packet flow */
+      .flow {
+        display: flex;
+        align-items: center;
+        gap: 0;
+      }
+      .flow-node {
+        flex: 1;
+        border-radius: 7px;
+        padding: 10px 8px;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        text-align: center;
+        border: 1px solid;
+      }
+      .flow-arrow {
+        color: var(--dim);
+        font-size: 18px;
+        padding: 0 6px;
+        flex-shrink: 0;
+      }
+      .fn-navy {
+        background: rgba(77, 128, 255, 0.08);
+        border-color: rgba(77, 128, 255, 0.3);
+        color: var(--navy2);
+      }
+      .fn-cyan {
+        background: rgba(0, 212, 255, 0.08);
+        border-color: rgba(0, 212, 255, 0.3);
+        color: var(--cyan2);
+      }
+      .fn-mint {
+        background: rgba(0, 229, 176, 0.08);
+        border-color: rgba(0, 229, 176, 0.3);
+        color: var(--mint2);
+      }
+      .fn-rose {
+        background: rgba(255, 85, 128, 0.08);
+        border-color: rgba(255, 85, 128, 0.3);
+        color: var(--rose2);
+      }
+      .fn-gold {
+        background: rgba(255, 201, 64, 0.08);
+        border-color: rgba(255, 201, 64, 0.3);
+        color: var(--gold2);
+      }
+      .fn-dim {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+      }
+
+      /* bastion diagram */
+      .bastion-wrap {
+        display: grid;
+        grid-template-columns: auto 1fr auto 1fr auto;
+        gap: 0;
+        align-items: center;
+        padding: 16px;
+        background: rgba(77, 128, 255, 0.03);
+        border: 1px solid var(--b);
+        border-radius: 10px;
+      }
+      .bnode {
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-family: var(--mono);
+        font-size: 11px;
+        text-align: center;
+        border: 1px solid;
+        min-width: 90px;
+      }
+      .barrow {
+        font-size: 20px;
+        color: var(--dim);
+        text-align: center;
+        padding: 0 8px;
+      }
+      .btunnel {
+        height: 2px;
+        background: repeating-linear-gradient(
+          90deg,
+          var(--cyan) 0,
+          var(--cyan) 6px,
+          transparent 6px,
+          transparent 12px
+        );
+        margin: 0 8px;
+        position: relative;
+      }
+
+      /* ssh key visual */
+      .key-vis {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+      }
+      .key-box {
+        flex: 1;
+        border-radius: 8px;
+        padding: 14px;
+        font-family: var(--mono);
+        font-size: 11px;
+        text-align: center;
+        border: 1px solid;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+      }
+      .key-icon {
+        font-size: 24px;
+      }
+      .key-label {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .key-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .key-divider {
+        width: 1px;
+        background: var(--b2);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .key-divider::after {
+        content: "vs";
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--dim);
+        position: absolute;
+        background: var(--bg2);
+        padding: 4px;
+      }
+
+      /* lab card */
+      .lab-card {
+        background: var(--bg2);
+        border: 1px solid var(--b);
+        border-radius: 10px;
+        padding: 18px 20px;
+      }
+      .lab-num {
+        font-family: var(--mono);
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--b);
+        float: right;
+      }
+      .lab-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .lab-steps {
+        font-size: 12.5px;
+        color: var(--muted);
+        line-height: 2;
+      }
+
+      /* title glow */
+      #s1 {
+        justify-content: center;
+      }
+      #s1::after {
+        content: "";
+        position: absolute;
+        top: 20%;
+        right: 8%;
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(0, 212, 255, 0.05) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+
+      @media (max-width: 768px) {
+        :root {
+          --mobile-nav-space: 5.5rem;
+        }
+
+        html,
+        body {
+          width: 100%;
+          height: 100%;
+          overflow-x: hidden;
+          overflow-y: hidden !important;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        body {
+          height: 100dvh;
+        }
+
+        .deck {
+          width: 100%;
+          height: 100dvh;
+          overflow: hidden;
+        }
+
+        .slide {
+          display: none;
+          position: absolute;
+          inset: 0;
+          min-height: 0;
+          height: 100dvh;
+          overflow-x: hidden;
+          overflow-y: auto !important;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+          padding: 1.4rem 1rem calc(var(--mobile-nav-space) + 1.4rem) !important;
+          touch-action: pan-y;
+        }
+
+        .slide::after {
+          content: "";
+          display: block;
+          flex: 0 0 calc(var(--mobile-nav-space) + env(safe-area-inset-bottom));
+        }
+
+        #s1::after {
+          display: none;
+        }
+
+        .slide.active {
+          display: flex;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;
+        }
+
+        .slide > * {
+          min-height: 0;
+        }
+
+        .nav {
+          left: 50%;
+          transform: translateX(-50%);
+          bottom: calc(0.75rem + env(safe-area-inset-bottom));
+          width: calc(100vw - 1.5rem);
+          max-width: 560px;
+          flex-wrap: nowrap;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.5rem 0.85rem;
+        }
+
+        .nbtn {
+          font-size: 11px;
+          padding: 5px 12px;
+        }
+
+        .ncnt {
+          min-width: 52px;
+        }
+
+        .dots {
+          display: none;
+        }
+
+        h1 {
+          font-size: clamp(32px, 10vw, 42px);
+          line-height: 1.05;
+        }
+
+        h2 {
+          font-size: clamp(24px, 7vw, 34px);
+          line-height: 1.1;
+        }
+
+        .grid2,
+        .grid3 {
+          grid-template-columns: 1fr !important;
+        }
+
+        .slide > div[style*="grid-template-columns: repeat(4"] {
+          grid-template-columns: 1fr !important;
+          flex: initial !important;
+        }
+
+        .card,
+        .lab-card,
+        .grade-card,
+        .track-card {
+          padding: 14px 16px;
+        }
+
+        .code {
+          font-size: 11px;
+          line-height: 1.75;
+          padding: 12px 14px;
+          overflow-x: auto;
+        }
+
+        .flow {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .flow-arrow {
+          transform: rotate(90deg);
+          padding: 4px 0;
+        }
+
+        .key-vis {
+          flex-direction: column;
+        }
+
+        .key-divider {
+          width: 100%;
+          height: 1px;
+          margin: 6px 0;
+        }
+
+        .lvm-row {
+          flex-direction: column;
+        }
+
+        .bastion-wrap {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .fstab-row {
+          grid-template-columns: 1fr;
+          gap: 4px;
+          padding: 10px 0;
+        }
+
+        .ft {
+          display: block;
+          overflow-x: auto;
+        }
+
+        .seminar-table {
+          display: block;
+          overflow-x: auto;
+        }
+
+        .kbhint {
+          display: none;
+        }
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--navy);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress"></div>
+    <div class="deck">
+      <!-- ═══ S1 TITLE ═══ -->
+      <div class="slide active" id="s1">
+        <div class="eyebrow">Module 3 · Network &amp; Security · Session 5</div>
+        <h1>Network Config<br />&amp; <span class="cy">SSH</span></h1>
+        <p
+          style="
+            font-size: 18px;
+            color: var(--muted);
+            margin-top: 16px;
+            font-weight: 300;
+          "
+        >
+          Connect, transfer files, and access servers securely
+        </p>
+        <div
+          style="
+            display: flex;
+            gap: 20px;
+            margin-top: 44px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--dim);
+          "
+        >
+          <span>13 slides</span><span>·</span
+          ><span>Theory + Examples + Labs</span><span>·</span
+          ><span>~90 min</span>
+        </div>
+      </div>
+
+      <!-- ═══ S2 OVERVIEW ═══ -->
+      <div class="slide" id="s2">
+        <div class="lbl">Slide 2 — Overview</div>
+        <h2 style="margin-bottom: 24px">
+          What we'll <span class="cy">cover</span>
+        </h2>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            flex: 1;
+          "
+        >
+          <div
+            class="card"
+            style="display: flex; flex-direction: column; gap: 10px"
+          >
+            <div style="font-size: 20px">🌐</div>
+            <div style="font-size: 15px; font-weight: 700" class="n">
+              Network Setup
+            </div>
+            <div
+              style="
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--muted);
+                line-height: 1.9;
+              "
+            >
+              ip addr / route<br />nmcli<br />Static IP &amp; DHCP<br />DNS
+              resolution
+            </div>
+          </div>
+          <div
+            class="card"
+            style="display: flex; flex-direction: column; gap: 10px"
+          >
+            <div style="font-size: 20px">🔬</div>
+            <div style="font-size: 15px; font-weight: 700" class="cy">
+              Diagnostics
+            </div>
+            <div
+              style="
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--muted);
+                line-height: 1.9;
+              "
+            >
+              ss / netstat<br />ping / traceroute<br />dig / nslookup<br />curl
+              / wget
+            </div>
+          </div>
+          <div
+            class="card"
+            style="display: flex; flex-direction: column; gap: 10px"
+          >
+            <div style="font-size: 20px">🔑</div>
+            <div style="font-size: 15px; font-weight: 700" class="m">SSH</div>
+            <div
+              style="
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--muted);
+                line-height: 1.9;
+              "
+            >
+              sshd_config<br />Key pairs<br />~/.ssh/config<br />ProxyJump
+            </div>
+          </div>
+          <div
+            class="card"
+            style="display: flex; flex-direction: column; gap: 10px"
+          >
+            <div style="font-size: 20px">📁</div>
+            <div style="font-size: 15px; font-weight: 700" class="g">
+              File Transfer
+            </div>
+            <div
+              style="
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--muted);
+                line-height: 1.9;
+              "
+            >
+              scp<br />rsync<br />--delete flag<br />Over SSH
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S3 IP / NMCLI ═══ -->
+      <div class="slide" id="s3">
+        <div class="lbl">Slide 3 — Theory</div>
+        <h2 style="margin-bottom: 22px">
+          Network Interfaces — <span class="n">ip &amp; nmcli</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="code">
+              <span class="cc"># inspect current state</span><br />
+              <span class="cp">$ </span><span class="cm">ip addr show</span>
+              <span class="cc"> # all interfaces</span><br />
+              <span class="cp">$ </span><span class="cm">ip addr show</span>
+              <span class="ca">eth0</span>
+              <span class="cc"> # specific iface</span><br />
+              <span class="cp">$ </span><span class="cm">ip route show</span>
+              <span class="cc"> # routing table</span><br />
+              <span class="cp">$ </span><span class="cm">ip link show</span>
+              <span class="cc"> # layer-2 status</span><br />
+              <br />
+              <span class="cc"># temporary IP assignment (lost on reboot)</span
+              ><br />
+              <span class="cp">$ </span><span class="cm">ip addr add</span>
+              <span class="cv">192.168.1.100/24</span>
+              <span class="cf">dev</span> <span class="ca">eth0</span><br />
+              <span class="cp">$ </span
+              ><span class="cm">ip route add default</span>
+              <span class="cf">via</span> <span class="cv">192.168.1.1</span>
+            </div>
+            <div class="code">
+              <span class="cc"># nmcli — persistent config</span><br />
+              <span class="cp">$ </span><span class="cm">nmcli con show</span>
+              <span class="cc"> # list connections</span><br />
+              <span class="cp">$ </span
+              ><span class="cm">nmcli device status</span><br />
+              <br />
+              <span class="cc"># set static IP</span><br />
+              <span class="cp">$ </span><span class="cm">nmcli con mod</span>
+              <span class="ca">"Wired connection 1"</span> \<br />
+              <span class="cf">ipv4.method manual</span> \<br />
+              <span class="cf">ipv4.addresses</span>
+              <span class="cv">192.168.1.100/24</span> \<br />
+              <span class="cf">ipv4.gateway</span>
+              <span class="cv">192.168.1.1</span> \<br />
+              <span class="cf">ipv4.dns</span>
+              <span class="cv">"8.8.8.8 8.8.4.4"</span><br />
+              <span class="cp">$ </span><span class="cm">nmcli con up</span>
+              <span class="ca">"Wired connection 1"</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">DHCP vs Static IP</div>
+              <table class="ft">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>DHCP</th>
+                    <th>Static</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color: #607088">Assignment</td>
+                    <td style="color: var(--cyan2)">Automatic</td>
+                    <td style="color: var(--mint2)">Manual</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #607088">Changes?</td>
+                    <td style="color: var(--rose2)">May change on lease</td>
+                    <td style="color: var(--mint2)">Never changes</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #607088">Use for</td>
+                    <td style="color: #607088">Workstations, dev VMs</td>
+                    <td style="color: #607088">Servers, services</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #607088">DNS entry</td>
+                    <td style="color: var(--rose2)">Dynamic (tricky)</td>
+                    <td style="color: var(--mint2)">Stable, mappable</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)"
+                >Servers always get static IPs.</strong
+              >
+              If a server's IP changes, every service pointing to it breaks —
+              DNS records, firewall rules, SSH known_hosts.
+            </div>
+            <div class="info">
+              <code style="font-size: 11px; font-family: var(--mono)">ip</code>
+              commands are from the
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >iproute2</code
+              >
+              suite and replace the deprecated
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >ifconfig</code
+              >. Use
+              <code style="font-size: 11px; font-family: var(--mono)">ip</code>
+              on all modern systems.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S4 DNS ═══ -->
+      <div class="slide" id="s4">
+        <div class="lbl">Slide 4 — Theory</div>
+        <h2 style="margin-bottom: 22px">
+          DNS &amp; <span class="cy">Name Resolution</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="code">
+              <span class="cc"># DNS lookup tools</span><br />
+              <span class="cp">$ </span><span class="cm">dig</span>
+              <span class="ca">example.com</span>
+              <span class="cc"> # full DNS query</span><br />
+              <span class="cp">$ </span><span class="cm">dig</span>
+              <span class="ca">example.com</span> <span class="cf">A</span>
+              <span class="cc"> # A record only</span><br />
+              <span class="cp">$ </span><span class="cm">dig</span>
+              <span class="ca">example.com</span> <span class="cf">MX</span>
+              <span class="cc"> # mail records</span><br />
+              <span class="cp">$ </span><span class="cm">dig</span>
+              <span class="cf">@8.8.8.8</span>
+              <span class="ca">example.com</span>
+              <span class="cc"> # use specific DNS</span><br />
+              <span class="cp">$ </span><span class="cm">nslookup</span>
+              <span class="ca">example.com</span>
+              <span class="cc"> # simpler lookup</span><br />
+              <br />
+              <span class="cc"># check which DNS server is used</span><br />
+              <span class="cp">$ </span><span class="cm">cat</span>
+              <span class="ca">/etc/resolv.conf</span><br />
+              <span class="co">nameserver 8.8.8.8</span><br />
+              <span class="co">nameserver 8.8.4.4</span><br />
+              <span class="co">search mycompany.local</span>
+            </div>
+            <div class="card">
+              <div class="ctitle">/etc/hosts — local overrides</div>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"># fastest lookup — checked before DNS</span
+                ><br />
+                <span class="cv">127.0.0.1</span>
+                <span class="ca">localhost</span><br />
+                <span class="cv">192.168.1.10</span>
+                <span class="ca">web-server web</span><br />
+                <span class="cv">192.168.1.20</span>
+                <span class="ca">db-server db</span><br />
+                <span class="cv">192.168.1.30</span>
+                <span class="ca">bastion jump</span><br />
+                <br />
+                <span class="cc"># use alias: ssh web (instead of IP)</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">
+                Name resolution order — /etc/nsswitch.conf
+              </div>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin: 10px 0;
+                "
+              >
+                <div
+                  class="flow-node fn-navy"
+                  style="flex: 0.6; font-size: 10px"
+                >
+                  query
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node fn-mint" style="font-size: 10px">
+                  /etc/hosts<br /><span style="opacity: 0.6; font-size: 9px"
+                    >local first</span
+                  >
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node fn-cyan" style="font-size: 10px">
+                  DNS server<br /><span style="opacity: 0.6; font-size: 9px"
+                    >resolv.conf</span
+                  >
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node fn-gold" style="font-size: 10px">
+                  mDNS<br /><span style="opacity: 0.6; font-size: 9px"
+                    >.local</span
+                  >
+                </div>
+              </div>
+              <p class="body" style="font-size: 13px">
+                /etc/hosts entries always win over DNS. Useful for local dev
+                overrides or blocking domains.
+              </p>
+            </div>
+            <div class="code">
+              <span class="cc"># test resolution step by step</span><br />
+              <span class="cp">$ </span><span class="cm">getent hosts</span>
+              <span class="ca">web-server</span>
+              <span class="cc"> # what the OS sees</span><br />
+              <span class="cp">$ </span><span class="cm">dig +short</span>
+              <span class="ca">web-server</span>
+              <span class="cc"> # DNS only</span><br />
+              <br />
+              <span class="cc"># trace full DNS resolution chain</span><br />
+              <span class="cp">$ </span><span class="cm">dig</span>
+              <span class="cf">+trace</span> <span class="ca">example.com</span>
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)"
+                >Use /etc/hosts for lab VMs.</strong
+              >
+              Map all VM IPs to hostnames there — you can then use
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >ssh web</code
+              >
+              instead of remembering IPs.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S5 DIAGNOSTICS ═══ -->
+      <div class="slide" id="s5">
+        <div class="lbl">Slide 5 — Theory</div>
+        <h2 style="margin-bottom: 22px">
+          Network <span class="cy">Diagnostics</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="code">
+              <span class="cc"># connectivity tests</span><br />
+              <span class="cp">$ </span><span class="cm">ping</span>
+              <span class="cf">-c 4</span> <span class="ca">8.8.8.8</span>
+              <span class="cc"> # ICMP test</span><br />
+              <span class="cp">$ </span><span class="cm">traceroute</span>
+              <span class="ca">8.8.8.8</span>
+              <span class="cc"> # hop-by-hop path</span><br />
+              <span class="cp">$ </span><span class="cm">mtr</span>
+              <span class="ca">8.8.8.8</span>
+              <span class="cc"> # live traceroute</span><br />
+              <br />
+              <span class="cc"># open ports and sockets</span><br />
+              <span class="cp">$ </span><span class="cm">ss -tlnp</span>
+              <span class="cc"> # listening TCP</span><br />
+              <span class="cp">$ </span><span class="cm">ss -ulnp</span>
+              <span class="cc"> # listening UDP</span><br />
+              <span class="cp">$ </span><span class="cm">ss -tnp state</span>
+              <span class="ca">established</span>
+              <span class="cc"> # active conns</span><br />
+              <br />
+              <span class="cc"># older equivalent (deprecated)</span><br />
+              <span class="cp">$ </span><span class="cm">netstat -tlnp</span>
+              <span class="cc"> # use ss instead</span>
+            </div>
+            <div class="card">
+              <div class="ctitle">ss flags cheatsheet</div>
+              <table class="ft">
+                <thead>
+                  <tr>
+                    <th>Flag</th>
+                    <th>Meaning</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -t
+                    </td>
+                    <td style="color: #607088">TCP sockets</td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -u
+                    </td>
+                    <td style="color: #607088">UDP sockets</td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -l
+                    </td>
+                    <td style="color: #607088">Listening only</td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -n
+                    </td>
+                    <td style="color: #607088">No name resolution (faster)</td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -p
+                    </td>
+                    <td style="color: #607088">Show process name/PID</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="code">
+              <span class="cc"># HTTP testing with curl</span><br />
+              <span class="cp">$ </span><span class="cm">curl</span>
+              <span class="cf">-I</span>
+              <span class="ca">https://example.com</span>
+              <span class="cc"> # headers only</span><br />
+              <span class="cp">$ </span><span class="cm">curl</span>
+              <span class="cf">-v</span>
+              <span class="ca">https://example.com</span>
+              <span class="cc"> # verbose (TLS info)</span><br />
+              <span class="cp">$ </span><span class="cm">curl</span>
+              <span class="cf">-o /dev/null -sw</span>
+              <span class="cv">"%{http_code}\n"</span>
+              <span class="ca">URL</span><br />
+              <br />
+              <span class="cc"># check if port is reachable</span><br />
+              <span class="cp">$ </span><span class="cm">nc -zv</span>
+              <span class="ca">192.168.1.10 22</span>
+              <span class="cc"> # TCP port check</span><br />
+              <span class="cp">$ </span><span class="cm">nc -zv</span>
+              <span class="ca">192.168.1.10 80</span><br />
+              <br />
+              <span class="cc"># download a file</span><br />
+              <span class="cp">$ </span><span class="cm">wget</span>
+              <span class="cf">-q -O-</span>
+              <span class="ca">https://example.com/file</span><br />
+              <span class="cp">$ </span><span class="cm">wget</span>
+              <span class="cf">--continue</span>
+              <span class="ca">https://large-file.iso</span>
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)">Diagnosis order:</strong> ping
+              (reachable?) → nc (port open?) → curl (service responds?) → ss
+              (what's listening locally?). Each step narrows the problem.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S6 SSH KEYS ═══ -->
+      <div class="slide" id="s6">
+        <div class="lbl">Slide 6 — Theory</div>
+        <h2 style="margin-bottom: 22px">
+          SSH Key Pairs — <span class="m">How Authentication Works</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div class="card">
+              <div class="ctitle">Key pair — public vs private</div>
+              <div class="key-vis" style="margin: 10px 0">
+                <div
+                  class="key-box"
+                  style="
+                    border-color: rgba(0, 212, 255, 0.3);
+                    background: rgba(0, 212, 255, 0.05);
+                  "
+                >
+                  <div class="key-icon">🔓</div>
+                  <div class="key-label" style="color: var(--cyan)">
+                    Public Key
+                  </div>
+                  <div class="key-desc">
+                    ~/.ssh/id_ed25519.pub<br /><br />Lives on the server<br />in
+                    authorized_keys<br /><br />Safe to share
+                  </div>
+                </div>
+                <div
+                  style="width: 1px; background: var(--b2); margin: 0 6px"
+                ></div>
+                <div
+                  class="key-box"
+                  style="
+                    border-color: rgba(255, 201, 64, 0.3);
+                    background: rgba(255, 201, 64, 0.05);
+                  "
+                >
+                  <div class="key-icon">🔑</div>
+                  <div class="key-label" style="color: var(--gold)">
+                    Private Key
+                  </div>
+                  <div class="key-desc">
+                    ~/.ssh/id_ed25519<br /><br />Stays on your laptop<br />NEVER
+                    share this<br /><br />Protect with passphrase
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)">Analogy:</strong> The public
+              key is a padlock you give to the server. Your private key is the
+              only key that opens it. Even if someone steals the padlock, they
+              can't open it.
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="code">
+              <span class="cc"
+                ># generate a new key pair (ed25519 is modern)</span
+              ><br />
+              <span class="cp">$ </span><span class="cm">ssh-keygen</span>
+              <span class="cf">-t ed25519 -C</span>
+              <span class="cv">"alice@laptop"</span><br />
+              <span class="co"> Generating public/private ed25519 key pair</span
+              ><br />
+              <span class="co"> Enter file: ~/.ssh/id_ed25519</span><br />
+              <span class="co"> Enter passphrase: ●●●●●●●●</span><br />
+              <br />
+              <span class="cc"># copy public key to server</span><br />
+              <span class="cp">$ </span><span class="cm">ssh-copy-id</span>
+              <span class="cf">-i</span>
+              <span class="ca">~/.ssh/id_ed25519.pub alice@192.168.1.10</span
+              ><br />
+              <br />
+              <span class="cc"># manual alternative</span><br />
+              <span class="cp">$ </span><span class="cm">cat</span>
+              <span class="ca">~/.ssh/id_ed25519.pub</span> |
+              <span class="cm">ssh</span>
+              <span class="ca">alice@server</span> \<br />
+              <span class="cv"
+                >"mkdir -p ~/.ssh &amp;&amp; cat >>
+                ~/.ssh/authorized_keys"</span
+              ><br />
+              <br />
+              <span class="cc"># now login — no password needed</span><br />
+              <span class="cp">$ </span><span class="cm">ssh</span>
+              <span class="ca">alice@192.168.1.10</span>
+            </div>
+            <div class="warn">
+              <strong style="color: var(--gold)"
+                >Always set a passphrase</strong
+              >
+              on your private key. Use
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >ssh-agent</code
+              >
+              so you only type it once per session, not per connection.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S7 SSHD_CONFIG ═══ -->
+      <div class="slide" id="s7">
+        <div class="lbl">Slide 7 — Theory</div>
+        <h2 style="margin-bottom: 22px">
+          sshd_config — <span class="r">Server Hardening</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">/etc/ssh/sshd_config — key settings</div>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"
+                  ># non-default port (less automated scanning)</span
+                ><br />
+                <span class="ck">Port</span> <span class="cv">2222</span><br />
+                <br />
+                <span class="cc"># MUST disable root login</span><br />
+                <span class="ck">PermitRootLogin</span>
+                <span class="cv">no</span><br />
+                <br />
+                <span class="cc"
+                  ># keys only — no password brute force possible</span
+                ><br />
+                <span class="ck">PasswordAuthentication</span>
+                <span class="cv">no</span><br />
+                <span class="ck">PubkeyAuthentication</span>
+                <span class="cv">yes</span><br />
+                <br />
+                <span class="cc"># whitelist who can log in</span><br />
+                <span class="ck">AllowUsers</span>
+                <span class="cv">alice bob deploy</span><br />
+                <br />
+                <span class="cc"># disconnect idle sessions (5min timeout)</span
+                ><br />
+                <span class="ck">ClientAliveInterval</span>
+                <span class="cv">300</span><br />
+                <span class="ck">ClientAliveCountMax</span>
+                <span class="cv">2</span><br />
+                <br />
+                <span class="cc"># apply changes</span><br />
+                <span class="cp">$ </span><span class="cm">sshd -t</span>
+                <span class="cc"> # test config first!</span><br />
+                <span class="cp">$ </span
+                ><span class="cm">systemctl reload</span>
+                <span class="ca">ssh</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">Impact of each change</div>
+              <table class="ft">
+                <thead>
+                  <tr>
+                    <th>Setting</th>
+                    <th>Security effect</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      style="
+                        font-family: var(--mono);
+                        font-size: 11px;
+                        color: var(--rose2);
+                      "
+                    >
+                      Port 2222
+                    </td>
+                    <td style="color: #607088">
+                      Drops ~95% of automated scan traffic
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        font-family: var(--mono);
+                        font-size: 11px;
+                        color: var(--rose2);
+                      "
+                    >
+                      PermitRootLogin no
+                    </td>
+                    <td style="color: #607088">
+                      Root can't be targeted directly
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        font-family: var(--mono);
+                        font-size: 11px;
+                        color: var(--rose2);
+                      "
+                    >
+                      PasswordAuth no
+                    </td>
+                    <td style="color: #607088">
+                      Brute force attacks become impossible
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        font-family: var(--mono);
+                        font-size: 11px;
+                        color: var(--rose2);
+                      "
+                    >
+                      AllowUsers
+                    </td>
+                    <td style="color: #607088">
+                      Even compromised accounts can't SSH in
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="warn">
+              <strong style="color: var(--gold)"
+                >Test config before reloading.</strong
+              >
+              Run
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >sshd -t</code
+              >
+              to catch syntax errors. Keep a second terminal session open — it
+              stays alive even if sshd restarts.
+            </div>
+            <div class="info">
+              After disabling password auth,
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >ssh-copy-id</code
+              >
+              won't work. Always copy your public key <em>before</em> setting
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >PasswordAuthentication no</code
+              >.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S8 SSH CONFIG ═══ -->
+      <div class="slide" id="s8">
+        <div class="lbl">Slide 8 — Theory</div>
+        <h2 style="margin-bottom: 22px">
+          ~/.ssh/config — <span class="m">Connection Aliases</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">~/.ssh/config</div>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"># use: ssh web</span><br />
+                <span class="ck">Host</span> <span class="cv">web</span><br />
+                HostName <span class="ca">192.168.1.10</span><br />
+                User <span class="ca">alice</span><br />
+                Port <span class="ca">2222</span><br />
+                IdentityFile <span class="ca">~/.ssh/id_ed25519</span><br />
+                <br />
+                <span class="cc"># use: ssh db</span><br />
+                <span class="ck">Host</span> <span class="cv">db</span><br />
+                HostName <span class="ca">192.168.1.20</span><br />
+                User <span class="ca">alice</span><br />
+                Port <span class="ca">2222</span><br />
+                <br />
+                <span class="cc"># defaults for all hosts</span><br />
+                <span class="ck">Host</span> <span class="cv">*</span><br />
+                ServerAliveInterval <span class="ca">60</span><br />
+                IdentityFile <span class="ca">~/.ssh/id_ed25519</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">Before vs after ~/.ssh/config</div>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"># BEFORE — type all this every time</span
+                ><br />
+                <span class="cp">$ </span><span class="cm">ssh</span>
+                <span class="cf">-i</span>
+                <span class="ca">~/.ssh/id_ed25519</span> \<br />
+                <span class="cf">-p</span> <span class="ca">2222</span>
+                <span class="ca">alice@192.168.1.10</span><br />
+                <br />
+                <span class="cc"># AFTER — clean alias</span><br />
+                <span class="cp">$ </span><span class="cm">ssh</span>
+                <span class="ca">web</span><br />
+                <br />
+                <span class="cc"># also works for scp and rsync</span><br />
+                <span class="cp">$ </span><span class="cm">scp</span>
+                <span class="ca">web:/var/log/nginx/access.log .</span><br />
+                <span class="cp">$ </span><span class="cm">rsync</span>
+                <span class="cf">-avz</span>
+                <span class="ca">web:/opt/app/</span>
+                <span class="ca">./backup/</span>
+              </div>
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)">Permissions matter.</strong>
+              SSH is strict about file permissions. Run:
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >chmod 600 ~/.ssh/config</code
+              >
+              and
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >chmod 700 ~/.ssh/</code
+              >
+              or SSH will refuse to use them.
+            </div>
+            <div class="info">
+              The config also works for tools that use SSH under the hood:
+              <code style="font-size: 11px; font-family: var(--mono)">git</code
+              >,
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >rsync</code
+              >,
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >ansible</code
+              >,
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >kubectl</code
+              >
+              port-forward — all respect
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >~/.ssh/config</code
+              >.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S9 PROXYJUMP ═══ -->
+      <div class="slide" id="s9">
+        <div class="lbl">Slide 9 — Theory</div>
+        <h2 style="margin-bottom: 22px">
+          ProxyJump — <span class="cy">Bastion Host Pattern</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div class="card">
+              <div class="ctitle">Enterprise network topology</div>
+              <div style="padding: 14px 0">
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <div
+                    class="flow-node fn-navy"
+                    style="font-size: 10px; min-width: 80px"
+                  >
+                    💻 Laptop<br />Your Machine
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      flex: 1;
+                    "
+                  >
+                    <div
+                      style="
+                        font-family: var(--mono);
+                        font-size: 9px;
+                        color: var(--cyan);
+                        margin-bottom: 3px;
+                      "
+                    >
+                      encrypted tunnel
+                    </div>
+                    <div
+                      style="
+                        height: 2px;
+                        width: 100%;
+                        background: repeating-linear-gradient(
+                          90deg,
+                          var(--cyan) 0,
+                          var(--cyan) 6px,
+                          transparent 6px,
+                          transparent 12px
+                        );
+                      "
+                    ></div>
+                  </div>
+                  <div
+                    class="flow-node fn-cyan"
+                    style="font-size: 10px; min-width: 80px"
+                  >
+                    🏰 Bastion<br />Public IP
+                  </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end">
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                      width: 60%;
+                    "
+                  >
+                    <div
+                      style="
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        flex: 1;
+                      "
+                    >
+                      <div
+                        style="
+                          font-family: var(--mono);
+                          font-size: 9px;
+                          color: var(--mint);
+                          margin-bottom: 3px;
+                        "
+                      >
+                        internal network
+                      </div>
+                      <div
+                        style="
+                          height: 2px;
+                          width: 100%;
+                          background: repeating-linear-gradient(
+                            90deg,
+                            var(--mint) 0,
+                            var(--mint) 6px,
+                            transparent 6px,
+                            transparent 12px
+                          );
+                        "
+                      ></div>
+                    </div>
+                    <div
+                      style="display: flex; flex-direction: column; gap: 5px"
+                    >
+                      <div
+                        class="flow-node fn-mint"
+                        style="font-size: 10px; padding: 7px 10px"
+                      >
+                        🖥 web-01<br />10.0.0.10
+                      </div>
+                      <div
+                        class="flow-node fn-mint"
+                        style="font-size: 10px; padding: 7px 10px"
+                      >
+                        🗄 db-01<br />10.0.0.20
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="body" style="font-size: 13px; margin-top: 8px">
+                Only the bastion has a public IP. Internal servers are
+                unreachable from the internet directly — you must go through
+                bastion.
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="code">
+              <span class="cc"># one-liner ProxyJump</span><br />
+              <span class="cp">$ </span><span class="cm">ssh</span>
+              <span class="cf">-J</span>
+              <span class="ca">alice@bastion.company.com alice@10.0.0.10</span
+              ><br />
+              <br />
+              <span class="cc"># in ~/.ssh/config — cleaner</span><br />
+              <span class="ck">Host</span> <span class="cv">bastion</span><br />
+              HostName <span class="ca">203.0.113.10</span>
+              <span class="cc"> # public IP</span><br />
+              User <span class="ca">alice</span><br />
+              <br />
+              <span class="ck">Host</span> <span class="cv">web-01</span><br />
+              HostName <span class="ca">10.0.0.10</span>
+              <span class="cc"> # private IP</span><br />
+              User <span class="ca">alice</span><br />
+              ProxyJump <span class="ca">bastion</span><br />
+              <br />
+              <span class="ck">Host</span> <span class="cv">db-01</span><br />
+              HostName <span class="ca">10.0.0.20</span><br />
+              User <span class="ca">alice</span><br />
+              ProxyJump <span class="ca">bastion</span><br />
+              <br />
+              <span class="cc"># now just:</span><br />
+              <span class="cp">$ </span><span class="cm">ssh</span>
+              <span class="ca">web-01</span>
+              <span class="cc"> # transparently jumps via bastion</span><br />
+              <span class="cp">$ </span><span class="cm">ssh</span>
+              <span class="ca">db-01</span>
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)"
+                >This is the real enterprise model.</strong
+              >
+              Your private key never leaves your laptop — even bastion can't
+              read it. SSH agent forwarding is an alternative but less secure.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S10 SCP + RSYNC ═══ -->
+      <div class="slide" id="s10">
+        <div class="lbl">Slide 10 — Theory</div>
+        <h2 style="margin-bottom: 22px">
+          scp &amp; rsync — <span class="g">File Transfer Over SSH</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">scp — simple file copy</div>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"># local → remote</span><br />
+                <span class="cp">$ </span><span class="cm">scp</span>
+                <span class="ca">report.pdf alice@web:/tmp/</span><br />
+                <br />
+                <span class="cc"># remote → local</span><br />
+                <span class="cp">$ </span><span class="cm">scp</span>
+                <span class="ca">alice@web:/var/log/nginx/access.log .</span
+                ><br />
+                <br />
+                <span class="cc"># copy directory recursively</span><br />
+                <span class="cp">$ </span><span class="cm">scp</span>
+                <span class="cf">-r</span>
+                <span class="ca">./project/ alice@web:/opt/</span><br />
+                <br />
+                <span class="cc"># uses ~/.ssh/config aliases</span><br />
+                <span class="cp">$ </span><span class="cm">scp</span>
+                <span class="ca">web:/etc/nginx/nginx.conf .</span>
+              </div>
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)"
+                >scp for one-off copies, rsync for sync.</strong
+              >
+              scp always transfers everything. rsync is smart — it only sends
+              what changed. Use rsync for anything recurring.
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">rsync — incremental sync</div>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"># sync local dir to remote</span><br />
+                <span class="cp">$ </span><span class="cm">rsync</span>
+                <span class="cf">-avz</span>
+                <span class="ca">./web/ alice@backup:/opt/web/</span><br />
+                <br />
+                <span class="cc"># sync with delete (mirror)</span><br />
+                <span class="cp">$ </span><span class="cm">rsync</span>
+                <span class="cf">-avz --delete</span>
+                <span class="ca">./web/ alice@backup:/opt/web/</span><br />
+                <br />
+                <span class="cc"># dry run first — see what would change</span
+                ><br />
+                <span class="cp">$ </span><span class="cm">rsync</span>
+                <span class="cf">-avzn</span>
+                <span class="ca">./web/ alice@backup:/opt/web/</span><br />
+                <br />
+                <span class="cc"># exclude patterns</span><br />
+                <span class="cp">$ </span><span class="cm">rsync</span>
+                <span class="cf">-avz --exclude</span>
+                <span class="cv">'*.log'</span>
+                <span class="cf">--exclude</span>
+                <span class="cv">'.git/'</span> \<br />
+                <span class="ca">./web/ alice@backup:/opt/web/</span><br />
+                <br />
+                <span class="cc"># bandwidth limit (KB/s)</span><br />
+                <span class="cp">$ </span><span class="cm">rsync</span>
+                <span class="cf">-avz --bwlimit=1000</span>
+                <span class="ca">./large/ remote:/dest/</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ctitle">rsync flags</div>
+              <table class="ft">
+                <thead>
+                  <tr>
+                    <th>Flag</th>
+                    <th>Meaning</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -a
+                    </td>
+                    <td style="color: #607088">
+                      Archive: preserve perms, times, symlinks
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -v
+                    </td>
+                    <td style="color: #607088">
+                      Verbose — show transferred files
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -z
+                    </td>
+                    <td style="color: #607088">
+                      Compress data during transfer
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      -n
+                    </td>
+                    <td style="color: #607088">Dry run — no actual changes</td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: var(--mono); color: var(--gold2)">
+                      --delete
+                    </td>
+                    <td style="color: #607088">Remove files not in source</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S11 EXAMPLES ═══ -->
+      <div class="slide" id="s11">
+        <div class="lbl">Slide 11 — Real-world examples</div>
+        <h2 style="margin-bottom: 22px">
+          Examples: <span class="cy">SSH Keys &amp; rsync in Practice</span>
+        </h2>
+        <div class="grid2" style="flex: 1; align-items: start">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">
+                Scenario 1 — passwordless CI/CD deployment
+              </div>
+              <p class="body" style="font-size: 13px; margin-bottom: 10px">
+                A GitHub Actions pipeline needs to deploy to your server. You
+                add the deploy key once — no password stored in CI.
+              </p>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"># on server: add CI's public key</span><br />
+                <span class="cp">$ </span><span class="cm">echo</span>
+                <span class="cv">"ssh-ed25519 AAAA... ci@github"</span> \<br />
+                >> /home/deploy/.ssh/authorized_keys<br />
+                <br />
+                <span class="cc"># GitHub Actions pipeline can now:</span><br />
+                <span class="cp">$ </span><span class="cm">ssh</span>
+                <span class="ca">deploy@yourserver.com</span>
+                <span class="cv">"./deploy.sh"</span><br />
+                <span class="cp">$ </span><span class="cm">rsync</span>
+                <span class="cf">-avz</span>
+                <span class="ca">./dist/ deploy@server:/opt/app/</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ctitle">Scenario 2 — ProxyJump in real life</div>
+              <p class="body" style="font-size: 13px; margin-bottom: 10px">
+                Your company has a bastion at
+                <code style="font-size: 11px; font-family: var(--mono)"
+                  >jump.company.com</code
+                >. All production servers are private.
+              </p>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"># one command, two hops</span><br />
+                <span class="cp">$ </span><span class="cm">ssh</span>
+                <span class="ca">prod-web-01</span><br />
+                <span class="co"> → connecting to jump.company.com...</span
+                ><br />
+                <span class="co"> → connecting to 10.10.1.50...</span><br />
+                <span class="co"> alice@prod-web-01:~$</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">
+                Scenario 3 — hourly rsync backup via cron
+              </div>
+              <p class="body" style="font-size: 13px; margin-bottom: 10px">
+                Sync the web directory to a backup server every hour. Only
+                changed files are transferred — fast even over slow links.
+              </p>
+              <div class="code" style="font-size: 12px">
+                <span class="cc"># crontab -e</span><br />
+                <span class="cv">0 * * * *</span> rsync
+                <span class="cf">-avz --delete</span> \<br />
+                <span class="ca">/var/www/html/</span> \<br />
+                <span class="ca">backup:/opt/www-backup/</span> \<br />
+                >> /var/log/rsync.log 2>&amp;1<br />
+                <br />
+                <span class="cc"># first run: transfers everything</span><br />
+                <span class="co"> sent 150MB in 45s</span><br />
+                <br />
+                <span class="cc"># subsequent runs: only changes</span><br />
+                <span class="co"> sent 45KB in 0.3s</span>
+              </div>
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)">--delete with caution.</strong>
+              Always do a dry run with
+              <code style="font-size: 11px; font-family: var(--mono)">-n</code>
+              first when using
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >--delete</code
+              >. It will remove files from the destination that don't exist in
+              the source.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S12 LABS ═══ -->
+      <div class="slide" id="s12">
+        <div class="lbl">Slide 12 — Hands-on labs</div>
+        <h2 style="margin-bottom: 22px">
+          Lab <span class="m">Exercises</span>
+        </h2>
+        <div class="grid2" style="flex: 1; gap: 12px">
+          <div class="lab-card">
+            <div class="lab-num" style="color: rgba(77, 128, 255, 0.15)">
+              01
+            </div>
+            <div class="lab-title n">Configure static IP with nmcli</div>
+            <div class="lab-steps">
+              1. Check current IP:
+              <code style="font-size: 11px">ip addr show</code><br />
+              2. Identify your connection name:
+              <code style="font-size: 11px">nmcli con show</code><br />
+              3. Set static IP, gateway, and DNS<br />
+              4. Bring connection up:
+              <code style="font-size: 11px">nmcli con up "..."</code><br />
+              5. Verify: <code style="font-size: 11px">ip addr</code> and
+              <code style="font-size: 11px">ping 8.8.8.8</code><br />
+              <em style="color: var(--dim)"
+                >Reboot and confirm the IP persists</em
+              >
+            </div>
+          </div>
+          <div class="lab-card">
+            <div class="lab-num" style="color: rgba(0, 229, 176, 0.15)">02</div>
+            <div class="lab-title m">
+              SSH key pair — passwordless login between 2 VMs
+            </div>
+            <div class="lab-steps">
+              1. On VM-A:
+              <code style="font-size: 11px">ssh-keygen -t ed25519</code><br />
+              2. Copy to VM-B:
+              <code style="font-size: 11px">ssh-copy-id user@VM-B-IP</code
+              ><br />
+              3. Test: <code style="font-size: 11px">ssh user@VM-B-IP</code> —
+              no password<br />
+              4. On VM-B: harden sshd_config<br />
+              5. Test again — key auth should still work<br />
+              <em style="color: var(--dim)"
+                >Verify PasswordAuthentication no blocks password login</em
+              >
+            </div>
+          </div>
+          <div class="lab-card">
+            <div class="lab-num" style="color: rgba(0, 212, 255, 0.15)">03</div>
+            <div class="lab-title cy">Configure ~/.ssh/config with aliases</div>
+            <div class="lab-steps">
+              1. Create <code style="font-size: 11px">~/.ssh/config</code> with
+              at least 2 Host entries<br />
+              2. Set correct permissions:
+              <code style="font-size: 11px">chmod 600 ~/.ssh/config</code><br />
+              3. Connect using alias:
+              <code style="font-size: 11px">ssh vm-a</code>,
+              <code style="font-size: 11px">ssh vm-b</code><br />
+              4. Test scp with alias:
+              <code style="font-size: 11px">scp vm-b:/etc/hostname .</code
+              ><br />
+              <em style="color: var(--dim)"
+                >Bonus: add a Host * block with ServerAliveInterval 60</em
+              >
+            </div>
+          </div>
+          <div class="lab-card">
+            <div class="lab-num" style="color: rgba(255, 201, 64, 0.15)">
+              04
+            </div>
+            <div class="lab-title g">rsync web dir to backup VM + cron</div>
+            <div class="lab-steps">
+              1. Create sample files in
+              <code style="font-size: 11px">/var/www/html/</code> on VM-A<br />
+              2. rsync to VM-B: test with
+              <code style="font-size: 11px">-n</code> first<br />
+              3. Run without <code style="font-size: 11px">-n</code>, verify
+              files appear on VM-B<br />
+              4. Add to crontab: every minute for testing<br />
+              5. Modify a file on VM-A, wait — check VM-B<br />
+              <em style="color: var(--dim)"
+                >Change cron to hourly (0 * * * *) when done</em
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ S13 SUMMARY ═══ -->
+      <div class="slide" id="s13">
+        <div class="lbl">Slide 13 — Summary</div>
+        <h2 style="margin-bottom: 24px">
+          Key <span class="cy">Takeaways</span>
+        </h2>
+        <div class="grid2" style="flex: 1; gap: 14px">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card" style="border-left: 2px solid var(--navy)">
+              <p class="body">
+                <strong style="color: var(--text)"
+                  >Servers need static IPs.</strong
+                >
+                Use nmcli for persistent config. A server that changes its IP
+                breaks DNS, firewalls, and SSH known_hosts all at once.
+              </p>
+            </div>
+            <div class="card" style="border-left: 2px solid var(--mint)">
+              <p class="body">
+                <strong style="color: var(--text)"
+                  >SSH keys over passwords, always.</strong
+                >
+                Keys are cryptographically stronger and eliminate the entire
+                class of brute-force attacks. Set a passphrase and use
+                ssh-agent.
+              </p>
+            </div>
+            <div class="card" style="border-left: 2px solid var(--cyan)">
+              <p class="body">
+                <strong style="color: var(--text)"
+                  >~/.ssh/config saves hours.</strong
+                >
+                Aliases, ProxyJump chains, and per-host keys in one file. Every
+                tool that uses SSH respects it.
+              </p>
+            </div>
+            <div class="card" style="border-left: 2px solid var(--gold)">
+              <p class="body">
+                <strong style="color: var(--text)"
+                  >rsync for recurring transfers.</strong
+                >
+                Always dry run with
+                <code style="font-size: 11px; font-family: var(--mono)"
+                  >-n</code
+                >
+                first, especially with
+                <code style="font-size: 11px; font-family: var(--mono)"
+                  >--delete</code
+                >. Combine with cron for automated backups.
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div class="card">
+              <div class="ctitle">Commands to memorize</div>
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 5px;
+                  margin-top: 4px;
+                "
+              >
+                <span class="tag tn">ip addr</span
+                ><span class="tag tn">ip route</span
+                ><span class="tag tn">nmcli con mod</span>
+                <span class="tag tc">dig</span
+                ><span class="tag tc">ss -tlnp</span
+                ><span class="tag tc">nc -zv</span>
+                <span class="tag tm">ssh-keygen -t ed25519</span
+                ><span class="tag tm">ssh-copy-id</span>
+                <span class="tag tr">sshd -t</span
+                ><span class="tag tr">systemctl reload ssh</span>
+                <span class="tag tg">scp -r</span
+                ><span class="tag tg">rsync -avz</span
+                ><span class="tag tg">rsync --delete</span>
+              </div>
+            </div>
+            <div class="warn">
+              <strong style="color: var(--gold)"
+                >3 mistakes that lock you out:</strong
+              ><br />
+              1. Setting
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >PasswordAuthentication no</code
+              >
+              before copying your key<br />
+              2. Editing sshd_config without testing with
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >sshd -t</code
+              ><br />
+              3. Running
+              <code style="font-size: 11px; font-family: var(--mono)"
+                >rsync --delete</code
+              >
+              without a dry run first
+            </div>
+            <div class="note">
+              <strong style="color: var(--mint)">Next session:</strong> Firewall
+              &amp; system security — UFW, fail2ban, auditd, hardening with
+              Lynis.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /deck -->
+
+    <nav class="nav">
+      <button class="nbtn" onclick="go(-1)">&#8592;</button>
+      <div class="dots" id="dots"></div>
+      <span class="ncnt" id="cnt">1 / 13</span>
+      <button class="nbtn" onclick="go(1)">&#8594;</button>
+    </nav>
+    <div class="kbhint">← → keys</div>
+
+    <script>
+      const slides = document.querySelectorAll(".slide");
+      const N = slides.length;
+      let cur = 0;
+      const dotsEl = document.getElementById("dots");
+      const cntEl = document.getElementById("cnt");
+      const prog = document.getElementById("progress");
+
+      for (let i = 0; i < N; i++) {
+        const d = document.createElement("div");
+        d.className = "dot" + (i === 0 ? " on" : "");
+        d.onclick = () => goTo(i);
+        dotsEl.appendChild(d);
+      }
+
+      function goTo(n) {
+        const prev = cur;
+        slides[prev].classList.remove("active");
+        dotsEl.children[prev].classList.remove("on");
+        cur = Math.max(0, Math.min(n, N - 1));
+        if (prev !== cur) slides[prev].style.display = "none";
+        slides[cur].style.display = "flex";
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => slides[cur].classList.add("active")),
+        );
+        slides[cur].scrollTop = 0;
+        dotsEl.children[cur].classList.add("on");
+        cntEl.textContent = cur + 1 + " / " + N;
+        prog.style.width = ((cur + 1) / N) * 100 + "%";
+      }
+
+      function go(d) {
+        goTo(cur + d);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") go(1);
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(-1);
+        if (e.key === "Home") goTo(0);
+        if (e.key === "End") goTo(N - 1);
+      });
+
+      goTo(0);
+    </script>
+  </body>
+</html>
