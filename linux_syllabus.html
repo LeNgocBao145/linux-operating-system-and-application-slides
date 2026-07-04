@@ -357,6 +357,25 @@
   }
   .ctrl-btn:hover { background: var(--off); color: var(--text); border-color: #c8c4bc; }
 
+  /* ── PDF BUTTON ── */
+  .pdf-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .pdf-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid #f0b8a0;
+    background: #fff5f0;
+    color: #8c3318;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+  .pdf-btn:hover { background: #fde8e0; border-color: #e08060; }
+
   /* ── PRINT ── */
   @media print {
     .session-body { display: block !important; }
@@ -633,6 +652,9 @@
             </ul>
           </div>
         </div>
+        <div class="pdf-links">
+          <a class="pdf-btn" href="module3-networking-security/04b_basic_network_managment.pdf" target="_blank" rel="noopener">📄 Basic Network Management</a>
+        </div>
       </div>
     </div>
 
@@ -672,6 +694,10 @@
               <li>Run Lynis, record the score, remediate 3 HIGH warnings</li>
             </ul>
           </div>
+        </div>
+        <div class="pdf-links">
+          <a class="pdf-btn" href="module3-networking-security/09_firewall.pdf" target="_blank" rel="noopener">📄 Firewall</a>
+          <a class="pdf-btn" href="module3-networking-security/09_firewalld.pdf" target="_blank" rel="noopener">📄 Firewalld</a>
         </div>
       </div>
     </div>
