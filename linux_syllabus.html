@@ -314,6 +314,8 @@
   .seminar-table tr:hover td { background: var(--off); }
   .sem-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
   .sem-topic { font-weight: 500; color: var(--black); }
+  .sem-topic a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--muted); cursor: pointer; }
+  .sem-topic a:hover { color: var(--mod2t); border-bottom-color: var(--mod2t); }
   .sem-area {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
@@ -887,7 +889,10 @@
           <div class="session-title">Capstone Project</div>
           <div class="session-subtitle">Build a complete Linux system — live demo + defence</div>
         </div>
-        <span class="chevron">▾</span>
+        <div class="session-actions">
+          <button class="session-open" onclick="openPage('module5-scripting-and-capstone-project/Capstone_Project_Linux.pdf', event)">Open ↗</button>
+          <span class="chevron">▾</span>
+        </div>
       </div>
       <div class="session-body">
         <p class="col-head theory" style="margin-bottom:12px;">Project tracks — choose one</p>
@@ -934,7 +939,7 @@
       <tbody>
         <tr>
           <td class="sem-num">01</td>
-          <td class="sem-topic">Ansible — configuration management and automation</td>
+          <td class="sem-topic"><a onclick="openPage('seminar/ansible.pdf', event)">Ansible — configuration management and automation</a></td>
           <td><span class="sem-area area-auto">Automation</span></td>
           <td style="font-size:12px;color:var(--muted);">Most in-demand sysadmin skill; appears in nearly every DevOps job description</td>
         </tr>
@@ -946,13 +951,13 @@
         </tr>
         <tr>
           <td class="sem-num">03</td>
-          <td class="sem-topic">HAProxy — load balancing and high availability</td>
+          <td class="sem-topic"><a onclick="openPage('seminar/haproxy.html', event)">HAProxy — load balancing and high availability</a></td>
           <td><span class="sem-area area-net">Networking</span></td>
           <td style="font-size:12px;color:var(--muted);">Bread-and-butter for web infrastructure; handles millions of requests in production</td>
         </tr>
         <tr>
           <td class="sem-num">04</td>
-          <td class="sem-topic">Redis — in-memory caching and data structures</td>
+          <td class="sem-topic"><a onclick="openPage('seminar/redis.pdf', event)">Redis — in-memory caching and data structures</a></td>
           <td><span class="sem-area area-app">Application</span></td>
           <td style="font-size:12px;color:var(--muted);">Behind nearly every high-traffic web app for caching and session storage</td>
         </tr>
@@ -970,7 +975,7 @@
         </tr>
         <tr>
           <td class="sem-num">07</td>
-          <td class="sem-topic">Zabbix — enterprise host and network monitoring</td>
+          <td class="sem-topic"><a onclick="openPage('seminar/zabbix_presentation.html', event)">Zabbix — enterprise host and network monitoring</a></td>
           <td><span class="sem-area area-mon">Monitoring</span></td>
           <td style="font-size:12px;color:var(--muted);">Widely deployed in large organizations and government infrastructure</td>
         </tr>
@@ -988,9 +993,21 @@
         </tr>
         <tr>
           <td class="sem-num">10</td>
-          <td class="sem-topic">ELK Stack — centralised log management (Elasticsearch, Logstash, Kibana)</td>
+          <td class="sem-topic"><a onclick="openPage('seminar/elk-stack-slides.html', event)">ELK Stack — centralised log management (Elasticsearch, Logstash, Kibana)</a></td>
           <td><span class="sem-area area-mon">Monitoring</span></td>
           <td style="font-size:12px;color:var(--muted);">Industry-standard log aggregation and search platform; heavily used in operations and security teams</td>
+        </tr>
+        <tr>
+          <td class="sem-num">11</td>
+          <td class="sem-topic"><a onclick="openPage('seminar/nginx.pdf', event)">Nginx — advanced configuration, performance tuning and security hardening</a></td>
+          <td><span class="sem-area area-net">Networking</span></td>
+          <td style="font-size:12px;color:var(--muted);">Most widely used web server and reverse proxy; deep knowledge separates junior from senior sysadmins</td>
+        </tr>
+        <tr>
+          <td class="sem-num">12</td>
+          <td class="sem-topic">PostgreSQL — advanced administration, replication and performance</td>
+          <td><span class="sem-area area-app">Application</span></td>
+          <td style="font-size:12px;color:var(--muted);">Leading open-source relational database; preferred over MySQL for complex workloads and data integrity requirements</td>
         </tr>
       </tbody>
     </table>

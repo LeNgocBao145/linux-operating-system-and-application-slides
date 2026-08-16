@@ -1,0 +1,2611 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HAProxy - Slide tổng hợp</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&amp;family=Fira+Code:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+        :root {
+            --bg-color: #0b0f19;
+            --slide-bg: #111827;
+            --text-main: #f9fafb;
+            --text-muted: #cbd5e1;
+            --accent: #06b6d4;
+            --accent-glow: rgba(6, 182, 212, 0.3);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #f43f5e;
+            --border-color: #1f2937;
+            --code-bg: #030712;
+            --accent-blue: #06b6d4;
+            --accent-blue-light: rgba(6, 182, 212, 0.12);
+            --accent-light: rgba(255, 255, 255, 0.035);
+            --danger-color: #fb7185;
+            --danger-bg: rgba(244, 63, 94, 0.12);
+            --code-text: #f8fafc;
+            --bg: #0b0f19;
+            --panel: rgba(255, 255, 255, 0.035);
+            --panel-2: rgba(255, 255, 255, 0.05);
+            --text: #f9fafb;
+            --muted: #cbd5e1;
+            --line: #1f2937;
+            --blue: #06b6d4;
+            --green: #10b981;
+            --red: #f43f5e;
+            --orange: #f59e0b;
+            --code: #030712;
+            --shadow: none;
+            --radius: 8px;
+            --accent-2: #f59e0b;
+            --soft: rgba(255, 255, 255, .07);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .presentation-container {
+            position: relative;
+            width: 100vw;
+            height: 56.25vw;
+            max-width: 100vw;
+            max-height: 100vh;
+            background: var(--slide-bg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px var(--accent-glow);
+            border-radius: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+        }
+
+        @media (min-aspect-ratio: 16 / 9) {
+            .presentation-container {
+                width: 177.777vh;
+                height: 100vh;
+            }
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            height: calc(100% - 60px);
+            padding: 44px 64px;
+            box-sizing: border-box;
+            flex-direction: column;
+            animation: slideIn 0.3s ease-out;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.99);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        h1,
+        h2 {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 0 0 14px 0;
+            line-height: 1.15;
+        }
+
+        h1 {
+            font-size: clamp(1.85rem, 3.35vw, 3rem);
+        }
+
+        h2 {
+            font-size: clamp(1.65rem, 2.9vw, 2.45rem);
+        }
+
+        h3 {
+            margin: 0 0 10px 0;
+            font-size: clamp(1.05rem, 1.45vw, 1.35rem);
+            color: var(--text-main);
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 600;
+        }
+
+        p {
+            color: var(--text-muted);
+            line-height: 1.48;
+        }
+
+        p.subtitle,
+        .subtitle,
+        .slide-subtitle {
+            font-size: clamp(0.95rem, 1.35vw, 1.18rem);
+            color: var(--text-muted);
+            margin: 0 0 18px 0;
+            max-width: 100%;
+        }
+
+        .transition-slide {
+            justify-content: center;
+            background: radial-gradient(circle at 16% 0%, rgba(6, 182, 212, 0.18), transparent 36%), linear-gradient(135deg, #111827, #0b0f19 70%);
+        }
+
+        .transition-slide h2 {
+            font-size: clamp(2.1rem, 5vw, 4.1rem);
+            max-width: 920px;
+            color: var(--text-main);
+        }
+
+        .transition-slide p {
+            max-width: 760px;
+            font-size: clamp(1rem, 1.45vw, 1.25rem);
+        }
+
+        .transition-label {
+            color: var(--accent);
+            font-family: 'Fira Code', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .cover-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle at 50% 15%, rgba(6, 182, 212, 0.22), transparent 34%), radial-gradient(circle at 50% 90%, rgba(245, 158, 11, 0.12), transparent 28%), linear-gradient(135deg, #111827, #0b0f19 72%);
+        }
+
+        .cover-slide h2 {
+            max-width: 1180px;
+            color: var(--text-main);
+            font-size: clamp(3.4rem, 6.8vw, 6.8rem);
+            letter-spacing: -0.055em;
+            line-height: 1.02;
+            text-wrap: balance;
+        }
+
+        .team-card {
+            width: min(980px, 100%);
+            margin-top: 2.4rem;
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        .team-card h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: clamp(1.25rem, 1.6vw, 1.55rem);
+        }
+
+        .team-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.72rem 1rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .team-list li {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin: 0;
+            padding: 0.46rem 0.82rem;
+            border: 1px solid rgba(6, 182, 212, 0.26);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.035);
+            color: var(--text-main);
+            font-size: clamp(0.95rem, 1.2vw, 1.12rem);
+        }
+
+        .student-id {
+            color: var(--warning);
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+        }
+
+        .agenda-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.9rem 1.1rem;
+            margin-top: 1.4rem;
+        }
+
+        .agenda-item {
+            display: grid;
+            grid-template-columns: 2.4rem 1fr;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+            color: var(--text-main);
+            font-size: clamp(0.95rem, 1.22vw, 1.12rem);
+        }
+
+        .agenda-index {
+            display: grid;
+            place-items: center;
+            width: 2.4rem;
+            height: 2.4rem;
+            border-radius: 999px;
+            color: #07111f;
+            background: var(--accent);
+            font-family: 'Fira Code', monospace;
+            font-weight: 800;
+        }
+
+        .takeaway-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1.4rem;
+        }
+
+        .takeaway-card {
+            padding: 1.15rem;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--success);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .takeaway-card h3 {
+            color: var(--success);
+        }
+
+        .takeaway-card p {
+            margin: 0;
+            font-size: clamp(0.86rem, 1.05vw, 1rem);
+        }
+
+        .references-list {
+            display: grid;
+            gap: 0.78rem;
+            margin-top: 1.2rem;
+        }
+
+        .reference-item {
+            padding: 0.78rem 0.9rem;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .reference-item strong {
+            display: block;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+
+        .reference-item a {
+            color: var(--accent);
+            overflow-wrap: anywhere;
+            text-decoration: none;
+            font-family: 'Fira Code', monospace;
+            font-size: clamp(0.72rem, 0.9vw, 0.86rem);
+        }
+
+        .reference-note {
+            margin-top: 0.9rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .demo-slide h2,
+        .thank-slide h2 {
+            max-width: 1120px;
+        }
+
+        .thank-slide {
+            text-align: left;
+        }
+
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge,
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            min-height: 1.55rem;
+            padding: 0.22rem 0.55rem;
+            border-radius: 999px;
+            color: #d9f7ff;
+            background: rgba(6, 182, 212, 0.15);
+            border: 1px solid rgba(6, 182, 212, 0.38);
+            font-size: 0.78rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .tracker-text,
+        .kicker,
+        .part-label {
+            color: var(--warning);
+            font-size: clamp(0.72rem, 1vw, 0.95rem);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            margin: 0 0 0.45rem;
+        }
+
+        .part-label {
+            text-transform: none;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .slide-divider {
+            justify-content: center;
+        }
+
+        .slide-divider h2 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            color: var(--text-main);
+        }
+
+        .content {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .layout-2col,
+        .grid-2,
+        .columns,
+        .summary,
+        .health-layout,
+        .https-layout,
+        .config-layout {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+        }
+
+        .layout-2col .col {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .grid-3,
+        .grid-4,
+        .role-list,
+        .server-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.85rem;
+            min-height: 0;
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .role-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .card,
+        .hero-card,
+        .panel,
+        .box,
+        .highlight-box,
+        .role,
+        .config-item,
+        .takeaway,
+        .https-card,
+        .mode-card,
+        .server-card {
+            background: rgba(255, 255, 255, 0.035);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent);
+            color: var(--text-main);
+            min-height: 0;
+        }
+
+        .hero-card strong {
+            display: block;
+            color: #fff;
+            font-size: 1.45rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .hero-card span,
+        .card p,
+        .mini,
+        .mini-label {
+            color: var(--text-muted);
+            font-size: clamp(0.82rem, 1.08vw, 1.02rem);
+            line-height: 1.42;
+        }
+
+        .card-danger {
+            border-left-color: var(--danger);
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        .card-danger h3 {
+            color: #fda4af;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 1.25rem;
+        }
+
+        ul.square-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        ul.square-list li {
+            position: relative;
+            padding-left: 1.45rem;
+            margin-bottom: 0.75rem;
+            font-size: clamp(0.78rem, 1.05vw, 1rem);
+            line-height: 1.45;
+        }
+
+        ul.square-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.38rem;
+            width: 0.55rem;
+            height: 0.55rem;
+            border: 2px solid var(--accent);
+        }
+
+        li {
+            font-size: clamp(0.78rem, 1.05vw, 1rem);
+            line-height: 1.34;
+        }
+
+        td,
+        th {
+            font-size: inherit;
+            line-height: 1.34;
+        }
+
+        li {
+            margin-bottom: 0.45rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 0.5rem 0.6rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--accent);
+        }
+
+        .table-small td,
+        .table-small th {
+            font-size: clamp(0.72rem, 0.98vw, 0.92rem);
+            padding: 0.46rem 0.52rem;
+        }
+
+        pre,
+        .code-block,
+        .terminal-window {
+            background: var(--code-bg);
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: clamp(0.58rem, 0.86vw, 0.82rem);
+            margin: 0;
+            overflow: auto;
+            color: #e5e7eb;
+            border: 1px solid var(--border-color);
+        }
+
+        pre,
+        .code-block {
+            padding: 0.85rem;
+            line-height: 1.35;
+        }
+
+        .cmd-keyword,
+        .kw {
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        .cmd-arg,
+        .num {
+            color: #fbbf24;
+        }
+
+        .cmd-comment,
+        .comment {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .path {
+            color: #86efac;
+        }
+
+        .name {
+            color: #ffca8a;
+        }
+
+        .highlight,
+        .inline-code {
+            color: var(--accent);
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .inline-code {
+            background: rgba(6, 182, 212, 0.12);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+        }
+
+        .diagram-container {
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.8rem;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .svg-panel {
+            display: grid;
+            place-items: center;
+            background: rgba(3, 7, 18, 0.45);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.8rem;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .diagram-svg,
+        svg {
+            width: 100%;
+            height: auto;
+            max-height: 100%;
+            overflow: visible;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            min-height: 0;
+        }
+
+        .terminal-header {
+            background: #1e293b;
+            padding: 0.55rem 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .terminal-dot {
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+        }
+
+        .terminal-title {
+            color: #94a3b8;
+            font-size: 0.72rem;
+            font-family: 'Fira Code', monospace;
+            margin-left: auto;
+        }
+
+        .terminal-body {
+            padding: 1rem;
+            color: var(--code-text);
+            font-family: 'Fira Code', monospace;
+            font-size: clamp(0.68rem, 0.96vw, 0.88rem);
+            line-height: 1.5;
+        }
+
+        .flow-vertical {
+            display: grid;
+            gap: 0.22rem;
+            align-content: center;
+            height: 100%;
+        }
+
+        .flow-node {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            min-height: 2.25rem;
+            padding: 0.38rem 0.65rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+            font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+        }
+
+        .flow-index,
+        .key-icon,
+        .takeaway span {
+            display: grid;
+            place-items: center;
+            flex: 0 0 1.75rem;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 999px;
+            color: #07111f;
+            background: var(--accent);
+            font-weight: 900;
+        }
+
+        .arrow-down,
+        .arrow {
+            color: var(--accent);
+            display: grid;
+            place-items: center;
+            font-size: 0.95rem;
+        }
+
+        .flow-row,
+        .request-line {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flow-row .box {
+            display: grid;
+            place-items: center;
+            min-width: 6rem;
+            min-height: 3rem;
+            padding: 0.55rem;
+            border-left-width: 1px;
+            text-align: center;
+            font-size: clamp(0.82rem, 1.05vw, 1.02rem);
+        }
+
+        .box.primary,
+        .box.proxy,
+        .box.server-up,
+        .box.server-down {
+            border-left-width: 1px;
+        }
+
+        .box.proxy {
+            border-color: rgba(245, 158, 11, 0.65);
+        }
+
+        .box.server-up,
+        .server-card.up {
+            border-color: rgba(16, 185, 129, 0.68);
+        }
+
+        .box.server-down,
+        .server-card.down {
+            border-color: rgba(244, 63, 94, 0.72);
+            opacity: 0.86;
+        }
+
+        .decision {
+            color: var(--warning);
+            font-weight: 700;
+        }
+
+        .mode-points,
+        .route-list,
+        .key-points,
+        .takeaways,
+        .config-map,
+        .tls-flow {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .point,
+        .route,
+        .key-point,
+        .tls-step {
+            padding: 0.55rem 0.72rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.045);
+            color: var(--text-muted);
+            font-size: clamp(0.85rem, 1.08vw, 1.05rem);
+            line-height: 1.35;
+        }
+
+        .route {
+            display: grid;
+            grid-template-columns: minmax(4.5rem, .7fr) auto minmax(7rem, 1fr);
+            align-items: center;
+        }
+
+        .route code {
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            background: rgba(6, 182, 212, 0.12);
+            color: #cdeaff;
+            font-size: clamp(0.82rem, 1.05vw, 0.98rem);
+        }
+
+        .key-point,
+        .takeaway {
+            display: grid;
+            grid-template-columns: 1.75rem 1fr;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .server-card {
+            text-align: center;
+        }
+
+        .server-card .status {
+            display: inline-flex;
+            margin: 0.5rem 0;
+            padding: 0.22rem 0.5rem;
+            border-radius: 999px;
+            font-weight: 800;
+        }
+
+        .server-card.up .status,
+        .tag.green {
+            color: #07111f;
+            background: var(--success);
+        }
+
+        .server-card.down .status,
+        .tag.red {
+            color: #fff;
+            background: var(--danger);
+        }
+
+        .tag.orange {
+            background: rgba(245, 158, 11, 0.18);
+            color: #fde68a;
+        }
+
+        .tag.blue {
+            background: rgba(6, 182, 212, 0.18);
+            color: #cffafe;
+        }
+
+        .skip {
+            color: var(--danger);
+            font-size: clamp(1.6rem, 3.2vw, 2.5rem);
+            font-weight: 900;
+        }
+
+        .flow {
+            margin-top: 0.8rem;
+            padding: 0.9rem;
+            border-radius: 14px;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            font-size: clamp(1rem, 2vw, 1.45rem);
+            text-align: center;
+            font-weight: 800;
+        }
+
+        .example {
+            margin-top: 0.8rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.28);
+            font-size: clamp(0.66rem, 0.9vw, 0.82rem);
+            line-height: 1.35;
+        }
+
+        .url-chip {
+            display: inline-flex;
+            width: fit-content;
+            margin-top: 0.4rem;
+            padding: 0.55rem 0.75rem;
+            border: 1px solid rgba(6, 182, 212, 0.48);
+            border-radius: 8px;
+            color: #d9efff;
+            background: rgba(6, 182, 212, 0.08);
+            font-family: 'Fira Code', monospace;
+            font-size: clamp(0.86rem, 1.1vw, 1.05rem);
+        }
+
+        .l4l7 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.15rem;
+            height: 100%;
+            min-height: 0;
+            align-items: center;
+            padding-top: 1.25rem;
+        }
+
+        .mode-card {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            align-content: center;
+            gap: 0.9rem;
+        }
+
+        .hero-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .closing {
+            margin-top: 0.8rem;
+            padding: 0.9rem;
+            border-left: 4px solid var(--success);
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.08);
+            color: #d9ffe9;
+            font-size: clamp(0.82rem, 1.05vw, 1rem);
+            line-height: 1.34;
+        }
+
+        .core-mechanism {
+            flex: 1;
+            align-items: center;
+            grid-template-columns: 1.08fr 0.92fr;
+        }
+
+        .mechanism-list {
+            display: grid;
+            gap: 0.9rem;
+            align-content: center;
+            height: 100%;
+        }
+
+        .core-mechanism .terminal-window {
+            min-height: 270px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .health-layout {
+            align-items: center;
+        }
+
+        .health-layout>.panel:first-child {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .request-line {
+            width: 100%;
+            margin-top: 1.3rem;
+            text-align: center;
+        }
+
+        .summary {
+            align-items: center;
+        }
+
+        .summary>div {
+            align-self: center;
+        }
+
+        .footer-hint,
+        .slide-footer,
+        .nav {
+            display: none !important;
+        }
+
+        .notes {
+            display: none;
+        }
+
+        .footer {
+            height: 60px;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(3, 7, 18, 0.6);
+            border-top: 1px solid var(--border-color);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .controls button {
+            background: #1f2937;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .controls button:hover {
+            background: var(--accent);
+            color: var(--bg-color);
+            border-color: var(--accent);
+        }
+
+        .controls button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        @media (max-width: 820px) {
+            .presentation-container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                max-width: none;
+                max-height: none;
+            }
+
+            .slide {
+                padding: 24px 20px 84px;
+                height: 100%;
+                overflow: auto;
+            }
+
+            .layout-2col,
+            .grid-2,
+            .grid-3,
+            .grid-4,
+            .summary,
+            .health-layout,
+            .https-layout,
+            .config-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                padding: 0 16px;
+            }
+        }
+
+        @media print {
+            body {
+                overflow: visible;
+                display: block;
+                background: #fff;
+            }
+
+            .presentation-container {
+                width: 100%;
+                height: auto;
+                max-width: none;
+                max-height: none;
+                box-shadow: none;
+                border: 0;
+            }
+
+            .slide {
+                display: flex !important;
+                height: 56.25vw;
+                page-break-after: always;
+                break-after: page;
+            }
+
+            .footer {
+                display: none;
+            }
+        }
+
+        /* Revised comparison slides */
+        .compare-dense {
+            table-layout: fixed;
+            font-size: clamp(0.56rem, 0.76vw, 0.73rem);
+            line-height: 1.24;
+            background: rgba(3, 7, 18, 0.36);
+        }
+
+        .compare-dense th,
+        .compare-dense td {
+            padding: 0.36rem 0.43rem;
+            vertical-align: top;
+        }
+
+        .compare-dense th:first-child,
+        .compare-dense td:first-child {
+            width: 16%;
+        }
+
+        .compare-dense th:not(:first-child),
+        .compare-dense td:not(:first-child) {
+            width: 28%;
+        }
+
+        .compare-dense td:first-child {
+            color: var(--text-main);
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .tool-head {
+            display: flex;
+            flex-direction: column;
+            gap: 0.14rem;
+            color: var(--text-main);
+        }
+
+        .tool-name {
+            font-size: 0.92rem;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .tool-role {
+            font-size: 0.64rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .mini-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.07rem 0.33rem;
+            border-radius: 999px;
+            margin: 0 0.16rem 0.12rem 0;
+            font-size: 0.58rem;
+            font-weight: 800;
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            background: rgba(6, 182, 212, 0.12);
+            color: #cffafe;
+            white-space: nowrap;
+        }
+
+        .mini-chip.good {
+            border-color: rgba(16, 185, 129, .48);
+            background: rgba(16, 185, 129, .12);
+            color: #d1fae5;
+        }
+
+        .mini-chip.warn {
+            border-color: rgba(245, 158, 11, .5);
+            background: rgba(245, 158, 11, .12);
+            color: #fde68a;
+        }
+
+        .mini-chip.risk {
+            border-color: rgba(244, 63, 94, .52);
+            background: rgba(244, 63, 94, .12);
+            color: #fecdd3;
+        }
+
+        .compare-note-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .7rem;
+            margin-top: .75rem;
+        }
+
+        .note-box {
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .035);
+            padding: .58rem .7rem;
+            font-size: clamp(.64rem, .82vw, .78rem);
+            line-height: 1.32;
+            color: var(--text-muted);
+        }
+
+        .note-box b {
+            color: var(--text-main);
+        }
+
+        .decision-layout {
+            display: grid;
+            grid-template-columns: 1.35fr .85fr;
+            gap: 1rem;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .task-table {
+            table-layout: fixed;
+            height: 100%;
+            font-size: clamp(0.68rem, 0.9vw, 0.86rem);
+            line-height: 1.28;
+        }
+
+        .task-table th,
+        .task-table td {
+            padding: .5rem .58rem;
+        }
+
+        .task-table th:nth-child(1),
+        .task-table td:nth-child(1) {
+            width: 44%;
+        }
+
+        .task-table th:nth-child(2),
+        .task-table td:nth-child(2) {
+            width: 22%;
+            text-align: center;
+        }
+
+        .task-table th:nth-child(3),
+        .task-table td:nth-child(3) {
+            width: 34%;
+        }
+
+        .choice {
+            display: inline-flex;
+            justify-content: center;
+            min-width: 5.6rem;
+            padding: .22rem .45rem;
+            border-radius: 999px;
+            color: #07111f;
+            font-weight: 900;
+            font-size: .74rem;
+            background: var(--accent);
+        }
+
+        .choice.nginx {
+            background: var(--success);
+        }
+
+        .choice.apache {
+            background: var(--warning);
+        }
+
+        .choice.combo {
+            background: #e5e7eb;
+        }
+
+        .question-stack {
+            display: grid;
+            gap: .68rem;
+        }
+
+        .question-card {
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--warning);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .035);
+            padding: .75rem .85rem;
+        }
+
+        .question-card h3 {
+            font-size: clamp(.9rem, 1.16vw, 1.05rem);
+            margin-bottom: .35rem;
+            color: var(--warning);
+        }
+
+        .question-card p {
+            font-size: clamp(.68rem, .9vw, .84rem);
+            margin: 0;
+            line-height: 1.38;
+        }
+
+        .memory-rule {
+            display: grid;
+            gap: .45rem;
+            margin-top: .2rem;
+        }
+
+        .rule-line {
+            display: grid;
+            grid-template-columns: 4.9rem 1fr;
+            gap: .55rem;
+            align-items: center;
+            padding: .42rem .55rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .045);
+            font-size: clamp(.66rem, .88vw, .82rem);
+            color: var(--text-muted);
+        }
+
+        .rule-line strong {
+            color: var(--text-main);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .85rem;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .tech-card {
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .035);
+            padding: .86rem .95rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .tech-card h3 {
+            margin-bottom: .42rem;
+            color: var(--text-main);
+        }
+
+        .tech-card ul {
+            padding-left: 1.1rem;
+        }
+
+        .tech-card li {
+            font-size: clamp(.7rem, .92vw, .86rem);
+            line-height: 1.32;
+            margin-bottom: .36rem;
+        }
+
+        .pitfall-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .75rem;
+            margin-top: .8rem;
+        }
+
+        .pitfall {
+            padding: .58rem .7rem;
+            border: 1px solid rgba(244, 63, 94, .36);
+            border-left: 4px solid var(--danger);
+            border-radius: 8px;
+            background: rgba(244, 63, 94, .08);
+            font-size: clamp(.64rem, .82vw, .78rem);
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .pitfall b {
+            color: #fecdd3;
+        }
+    
+
+/* Final readability pass: larger fonts + scroll safety */
+.slide {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+.slide::-webkit-scrollbar { width: 10px; }
+.slide::-webkit-scrollbar-track { background: rgba(255,255,255,.035); }
+.slide::-webkit-scrollbar-thumb { background: rgba(6,182,212,.52); border-radius: 999px; }
+.slide::-webkit-scrollbar-thumb:hover { background: rgba(6,182,212,.78); }
+
+/* Slight global bump without destroying the original design */
+h1 { font-size: clamp(2.05rem, 3.55vw, 3.25rem); }
+h2 { font-size: clamp(1.9rem, 3.15vw, 2.75rem); }
+h3 { font-size: clamp(1.15rem, 1.58vw, 1.48rem); }
+p.subtitle, .subtitle, .slide-subtitle { font-size: clamp(1.08rem, 1.46vw, 1.35rem); }
+.card p, .mini, .mini-label, .hero-card span { font-size: clamp(.92rem, 1.16vw, 1.1rem); }
+li { font-size: clamp(.9rem, 1.15vw, 1.08rem); line-height: 1.42; }
+ul.square-list li { font-size: clamp(.95rem, 1.18vw, 1.12rem); line-height: 1.48; }
+.point, .route, .key-point, .tls-step { font-size: clamp(.92rem, 1.15vw, 1.1rem); line-height: 1.38; }
+.flow-node { font-size: clamp(.92rem, 1.16vw, 1.1rem); min-height: 2.55rem; }
+.flow-row .box { font-size: clamp(.9rem, 1.12vw, 1.08rem); }
+pre, .code-block, .terminal-window { font-size: clamp(.7rem, .95vw, .9rem); }
+.terminal-body { font-size: clamp(.84rem, 1.08vw, 1rem); }
+td, th { font-size: clamp(.9rem, 1.1vw, 1.04rem); line-height: 1.38; }
+.table-small td, .table-small th { font-size: clamp(.86rem, 1.04vw, .98rem); padding: .52rem .6rem; }
+
+/* Section 3: make the user comparison slides readable first, pretty second */
+.muc3-slide {
+    padding: 30px 46px;
+}
+.muc3-slide h2 {
+    font-size: clamp(2.25rem, 3.55vw, 3.35rem) !important;
+    margin-bottom: .55rem !important;
+}
+.muc3-slide .subtitle {
+    font-size: clamp(1.08rem, 1.38vw, 1.3rem) !important;
+    margin-bottom: .82rem !important;
+}
+.muc3-slide .kicker {
+    font-size: clamp(.88rem, 1.12vw, 1.05rem);
+}
+.compare-large {
+    table-layout: fixed;
+    font-size: clamp(.88rem, 1.12vw, 1.06rem);
+    line-height: 1.36;
+    background: rgba(3, 7, 18, 0.36);
+}
+.compare-large th, .compare-large td {
+    padding: .66rem .72rem;
+    vertical-align: top;
+}
+.compare-large th:first-child,
+.compare-large td:first-child { width: 15%; }
+.compare-large th:not(:first-child),
+.compare-large td:not(:first-child) { width: 28.33%; }
+.compare-large td:first-child {
+    color: var(--text-main);
+    font-weight: 850;
+    background: rgba(255,255,255,.04);
+}
+.compare-large .tool-name { font-size: clamp(1.1rem, 1.38vw, 1.35rem); }
+.compare-large .tool-role { font-size: clamp(.78rem, .98vw, .92rem); }
+.muc3-slide .mini-chip {
+    font-size: clamp(.72rem, .84vw, .84rem);
+    padding: .12rem .44rem;
+    margin-right: .18rem;
+}
+.note-box {
+    font-size: clamp(.9rem, 1.1vw, 1.06rem);
+    line-height: 1.42;
+    padding: .8rem .9rem;
+}
+.decision-full {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: .95rem;
+    flex: 1;
+    min-height: 0;
+}
+.task-table-wide {
+    table-layout: fixed;
+    font-size: clamp(.96rem, 1.22vw, 1.14rem);
+    line-height: 1.4;
+    background: rgba(3, 7, 18, 0.36);
+}
+.task-table-wide th, .task-table-wide td { padding: .78rem .86rem; }
+.task-table-wide th:nth-child(1), .task-table-wide td:nth-child(1) { width: 43%; }
+.task-table-wide th:nth-child(2), .task-table-wide td:nth-child(2) { width: 18%; text-align: center; }
+.task-table-wide th:nth-child(3), .task-table-wide td:nth-child(3) { width: 39%; }
+.choice {
+    min-width: 6.7rem;
+    padding: .32rem .64rem;
+    font-size: clamp(.84rem, 1.02vw, 1rem);
+}
+.memory-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: .85rem;
+}
+.memory-strip .note-box {
+    font-size: clamp(.92rem, 1.12vw, 1.08rem);
+}
+.tech-grid.big {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 1.05rem;
+}
+.tech-grid.big .tech-card {
+    padding: 1.08rem 1.16rem;
+}
+.tech-grid.big .tech-card h3 {
+    font-size: clamp(1.22rem, 1.6vw, 1.48rem);
+    color: var(--text-main);
+    margin-bottom: .6rem;
+}
+.tech-grid.big .tech-card li {
+    font-size: clamp(.96rem, 1.18vw, 1.12rem);
+    line-height: 1.48;
+    margin-bottom: .5rem;
+}
+.pitfall-row.big .pitfall {
+    font-size: clamp(.86rem, 1.06vw, 1rem);
+    padding: .82rem .9rem;
+}
+
+/* Keep print clean: no scrollbars when exporting */
+@media print {
+    .slide { overflow: hidden; }
+}
+</style>
+</head>
+<body>
+<div class="presentation-container">
+<div class="slide cover-slide">
+<div class="transition-label">Seminar Linux</div>
+<h2>HAProxy — load balancing and high availability</h2>
+<div class="team-card">
+<h3>Thành viên nhóm</h3>
+<ul class="team-list">
+<li><span class="student-id">23127278</span><span>Nguyễn Văn Tuấn</span></li>
+<li><span class="student-id">23127185</span><span>Mai Thi Kim Duyên</span></li>
+<li><span class="student-id">23127517</span><span>Nguyễn Nam Việt</span></li>
+<li><span class="student-id">23127099</span><span>Nguyễn Ngọc Hưng Phát</span></li>
+<li><span class="student-id">23127519</span><span>Lê Thành Vinh</span></li>
+</ul>
+</div>
+</div>
+<div class="slide">
+<h2><i class="fa-solid fa-list-check"></i> Agenda</h2>
+<p class="slide-subtitle">Lộ trình nội dung bài seminar từ nền tảng lý thuyết đến demo triển khai HAProxy.
+            </p>
+<div class="agenda-list">
+<div class="agenda-item"><span class="agenda-index">01</span><span>Giới thiệu về HAProxy.</span></div>
+<div class="agenda-item"><span class="agenda-index">02</span><span>Kiến trúc HAProxy: request flow,
+                        Layer
+                        4/Layer 7, TLS, Health Check.</span></div>
+<div class="agenda-item"><span class="agenda-index">03</span><span>So sánh HAProxy với Nginx và
+                        Apache.</span>
+</div>
+<div class="agenda-item"><span class="agenda-index">04</span><span>Hướng dẫn cài đặt, cấu hình và vận
+                        hành
+                        HAProxy.</span></div>
+<div class="agenda-item"><span class="agenda-index">05</span><span>Các Lỗi Phổ Biến &amp; Hậu Quả Thực
+                        Tế
+                    </span></div>
+<div class="agenda-item"><span class="agenda-index">06</span><span>Video demo, kết luận và tài liệu tham
+                        khảo.</span></div>
+</div>
+</div>
+<!-- SLIDE 3: PART 1 COVER -->
+<div class="slide slide-divider transition-slide" data-chapter="00" data-tracker="Khởi đầu">
+<div class="transition-label">Mục 1</div>
+<h2>Giới thiệu về HAProxy</h2>
+<p>"Từ thách thức quá tải trên máy chủ đơn lẻ đến giải pháp proxy ngược hiệu năng cao. Lịch sử, kiến trúc
+                cốt lõi và
+                lý do các ông lớn công nghệ tin dùng HAProxy."</p>
+</div>
+<!-- SLIDE 4: OVERLOAD -->
+<div class="slide" data-chapter="01" data-tracker="Hạ tầng &amp; Thách thức">
+<div class="slide-header">
+<span class="badge">01</span>
+<span class="tracker-text">Hạ tầng &amp; Thách thức</span>
+</div>
+<h1>Hiện trạng và hệ quả của hiện tượng quá tải trên máy chủ đơn lẻ</h1>
+<div class="grid-2">
+<div>
+<ul class="square-list">
+<li><strong>Thực tế hạ tầng:</strong> Khi hệ thống chỉ vận hành một máy chủ duy nhất (Single Web
+                            Server), cấu hình này buộc phải tự gánh vác toàn bộ lưu lượng truy cập từ tập người dùng.
+                        </li>
+<li><strong>Giới hạn vật lý:</strong> Khả năng tính toán của phần cứng luôn có ngưỡng giới hạn
+                            cố định
+                            về CPU và dung lượng bộ nhớ RAM.</li>
+</ul>
+<div class="highlight-box" style="border-left-color: #f87171; background: rgba(239, 68, 68, 0.12); margin-top: 1.5rem; padding: 1.25rem; border-radius: 0 8px 8px 0;">
+<p style="color: #fca5a5; margin: 0; font-weight: 500;">➔ Hệ quả: Tạo ra "Điểm lỗi duy nhất"
+                            (Single
+                            Point of Failure) - nơi xảy ra sự cố đột ngột của một thành phần sẽ kéo sập hoàn toàn khả
+                            năng cung
+                            cấp dịch vụ.</p>
+</div>
+</div>
+<div class="grid-2" style="grid-template-columns: 1fr; gap: 1rem;">
+<div class="card" style="border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08); border-color: rgba(248, 113, 113, 0.2);">
+<h3 style="color: #fca5a5;">Nghẽn cổ chai (Bottleneck)</h3>
+<p style="color: #cbd5e1; margin: 0;">Lượng kết nối đồng thời vượt ngưỡng xử lý của phần cứng
+                            khiến hàng
+                            đợi yêu cầu bị dồn ứ, làm tốc độ tải trang chậm đi rõ rệt.</p>
+</div>
+<div class="card" style="border-left: 4px solid #f87171; background: rgba(239, 68, 68, 0.08); border-color: rgba(248, 113, 113, 0.2);">
+<h3 style="color: #fca5a5;">Sập máy chủ (Server down)</h3>
+<p style="color: #cbd5e1; margin: 0;">Tình trạng quá tải kéo dài dẫn đến cạn kiệt tài nguyên hệ
+                            điều
+                            hành, làm máy chủ ngừng hoạt động và tê liệt dịch vụ hoàn toàn.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- SLIDE 5: LOAD BALANCING -->
+<div class="slide" data-chapter="02" data-tracker="Giải pháp kiến trúc">
+<div class="slide-header">
+<span class="badge">02</span>
+<span class="tracker-text">Giải pháp kiến trúc</span>
+</div>
+<h1>Khái niệm giải pháp Cân bằng tải (Load Balancing)</h1>
+<div class="grid-2">
+<div>
+<ul class="square-list">
+<li><strong>Định nghĩa:</strong> Phương thức phân phối có điều phối các khối lượng công việc
+                            tính toán
+                            xử lý giữa hai hoặc nhiều máy tính với nhau.</li>
+<li><strong>Môi trường Internet:</strong> Cân bằng tải dùng để phân chia lưu lượng mạng (network
+                            traffic) đến nhiều máy chủ khác nhau.</li>
+<li><strong>Bộ cân bằng tải (Load Balancer):</strong> Cơ chế phần cứng hoặc phần mềm thực hiện
+                            cân bằng
+                            tải được gọi là bộ cân bằng tải (Load Balancer).</li>
+</ul>
+</div>
+<div>
+<div class="card">
+<h3>Bản chất vận hành</h3>
+<p>Giải quyết triệt để tình trạng một máy chủ phải gánh chịu toàn bộ tải trọng xử lý dẫn tới
+                            nguy cơ quá
+                            tải (overloaded), tối ưu hiệu suất và giảm độ trễ kết nối.</p>
+<div class="highlight-box" style="background: var(--accent-blue-light); border-left-color: var(--accent-blue);">
+<p style="margin: 0; color: var(--text-main);">💡 Nguyên lý: Một hoạt động duy nhất tại một
+                                thời
+                                điểm vẫn sẽ chỉ do một thành phần duy nhất xử lý.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- SLIDE 6: INTRODUCING HAPROXY -->
+<div class="slide" data-chapter="03" data-tracker="Giải pháp công nghệ">
+    <div class="slide-header">
+        <span class="badge">03</span>
+        <span class="tracker-text">Giải pháp công nghệ</span>
+    </div>
+
+    <h1>Giới thiệu giải pháp công nghệ HAProxy</h1>
+    <p class="subtitle" style="margin-bottom: 2rem;">High Availability Proxy – Tiêu chuẩn thực tế đối với các hệ thống
+        cân bằng tải mã nguồn mở hiệu năng cao.</p>
+
+    <!-- Đã đổi align-items thành start để grid rút ngắn lên theo nội dung -->
+    <div class="grid-2" style="align-items: start; gap: 1.5rem;">
+
+        <!-- Cột 1: Định nghĩa -->
+        <div class="card" style="padding: 1.75rem;">
+            <h3 style="font-size: 1.35rem; margin-bottom: 1rem;">Định nghĩa ngắn gọn</h3>
+            <p style="font-size: 1.05rem; line-height: 1.6;">
+                HAProxy là phần mềm reverse proxy và load balancer hiệu năng cao, đứng ở biên hệ thống để nhận traffic
+                từ client, kiểm tra tình trạng backend và chuyển request đến server phù hợp.
+            </p>
+        </div>
+
+        <!-- Cột 2: Khả năng xử lý đa tầng -->
+        <div class="card" style="padding: 1.75rem;">
+            <h3 style="font-size: 1.35rem; margin-bottom: 1rem;">Khả năng xử lý đa tầng</h3>
+            <p style="font-size: 1.05rem; line-height: 1.6;">
+                Hoạt động kết hợp đồng thời như một <span class="inline-code">TCP proxy</span> (Layer 4) và một <span
+                    class="inline-code">HTTP reverse-proxy</span> (Layer 7):
+            </p>
+            <ul class="square-list" style="margin-top: 1rem;">
+                <li style="font-size: 1rem; line-height: 1.5; margin-bottom: 0.75rem;">
+                    <strong>Chế độ TCP:</strong> Quyết định điều phối đưa ra duy nhất một lần cho toàn bộ kết nối.
+                </li>
+                <li style="font-size: 1rem; line-height: 1.5; margin-bottom: 0;">
+                    <strong>Chế độ HTTP:</strong> Phân tích sâu để đưa ra quyết định cân bằng tải cho từng yêu cầu
+                    (request) riêng lẻ.
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+<!-- SLIDE 7: CASE STUDIES -->
+<div class="slide" data-chapter="04" data-tracker="Thực tế áp dụng">
+<div class="slide-header">
+<span class="badge">04</span>
+<span class="tracker-text">Thực tế áp dụng</span>
+</div>
+<h1>Các doanh nghiệp lớn đang triển khai HAProxy</h1>
+<div class="grid-4">
+<div class="card">
+<h3 style="border-bottom: 2px solid var(--accent); padding-bottom: 0.25rem; width: fit-content;">
+                        GitHub</h3>
+<p style="margin-top: 0.5rem;">Cân bằng tải mượt mà ở cả hai luồng dịch vụ giao thức SSH (Layer 4)
+                        và HTTPS
+                        (Layer 7), trung chuyển liên tục hàng triệu kết nối git push/pull của lập trình viên thế giới.
+                    </p>
+</div>
+<div class="card">
+<h3 style="border-bottom: 2px solid #ff4500; padding-bottom: 0.25rem; width: fit-content;">Reddit
+                    </h3>
+<p style="margin-top: 0.5rem;">Sử dụng mô hình kiến trúc hướng sự kiện siêu nhẹ nhằm gánh vác các
+                        đợt bão
+                        lưu lượng đột biến khi lượng người dùng đồng loạt tải lại trang (F5) và gửi bình luận.</p>
+</div>
+<div class="card">
+<h3 style="border-bottom: 2px solid #1da1f2; padding-bottom: 0.25rem; width: fit-content;">Twitter
+                        (X)</h3>
+<p style="margin-top: 0.5rem;">Áp dụng tính năng chuyển mạch nội dung thông minh (Content-based
+                        Switch) nhằm
+                        bóc tách và định tuyến chính xác dữ liệu thời gian thực về các cụm server nghiệp vụ riêng biệt.
+                    </p>
+</div>
+<div class="card">
+<h3 style="border-bottom: 2px solid #f48024; padding-bottom: 0.25rem; width: fit-content;">Stack
+                        Overflow
+                    </h3>
+<p style="margin-top: 0.5rem;">Đặt làm lớp cửa ngõ chịu tải tiếp xúc đầu tiên nhờ ưu điểm tốn rất ít
+                        tài
+                        nguyên máy chủ dịch vụ, đảm bảo độ trễ trung chuyển gói tin tiệm cận bằng không.</p>
+</div>
+</div>
+
+</div>
+<div class="slide" data-chapter="05" data-tracker="Thuật ngữ cốt lõi">
+<div class="slide-header">
+<span class="badge">05</span>
+<span class="tracker-text">Thuật ngữ cốt lõi</span>
+</div>
+<h1>Cơ chế vận hành trong HAProxy</h1>
+<div class="grid-2 core-mechanism">
+<div class="mechanism-list">
+<div class="card">
+<h3 style="color: var(--accent-blue);">Health check (Kiểm tra sức khỏe)</h3>
+<p>Cơ chế liên tục gửi yêu cầu kiểm tra trạng thái hoạt động của cụm backend định kỳ. Tự động
+                            cách ly máy
+                            chủ lỗi khỏi vòng phân phối để tránh gián đoạn dịch vụ.</p>
+</div>
+<div class="card">
+<h3 style="color: var(--accent-blue);">Failover (Chuyển đổi dự phòng)</h3>
+<p>Quy trình tự động định tuyến toàn bộ tiến trình công việc từ một máy chủ bị sập sang máy chủ
+                            dự phòng
+                            (standby node) với tốc độ cao nhằm triệt tiêu downtime kết nối.</p>
+</div>
+<div class="card">
+<h3 style="color: var(--accent-blue);">ACLs (Access Control Lists)</h3>
+<p>Danh sách kiểm soát truy cập dựa trên tập quy tắc điều kiện (IP, URL, Header, Method) để
+                            chuyển mạch nội
+                            dung hoặc chặn đứng truy cập bất thường.</p>
+</div>
+</div>
+<div class="terminal-window">
+<div class="terminal-header">
+<div class="terminal-dot" style="background: #ef4444;"></div>
+<div class="terminal-dot" style="background: #eab308;"></div>
+<div class="terminal-dot" style="background: #22c55e;"></div>
+<div class="terminal-title">haproxy.cfg status</div>
+</div>
+<div class="terminal-body">
+                        [INFO] Health check passed for srv_node1 (200 OK)<br/>
+                        [WARN] Health check failed for srv_node2 (Timeout)<br/>
+                        [ALERT] srv_node2 isolated from load pool<br/>
+                        [INFO] Failover active: rerouting paths to standby<br/>
+                        [INFO] ACL 'block_bad_ip' matched connection from 192.168.4.99 -&gt; Action: Denied (403)
+                    </div>
+</div>
+</div>
+</div>
+<div class="slide transition-slide">
+<div class="transition-label">Mục 2</div>
+<h2>Giới thiệu kiến trúc</h2>
+<p>Vị trí HAProxy trong hệ thống, luồng request, Layer 4/Layer 7, TLS, health check.</p>
+</div>
+<section aria-label="Slide 1" class="slide">
+<header class="slide-header">
+<div>
+<p class="kicker">Mục 2 - Kiến trúc HAProxy</p>
+<h1>HAProxy nằm ở đâu trong hệ thống?</h1>
+<p class="subtitle">Client không đi thẳng vào từng server. Client gửi HTTP/HTTPS đến HAProxy, rồi
+                        HAProxy điều
+                        phối request vào cụm server phía sau.</p>
+</div>
+<div class="badge">05</div>
+</header>
+<div class="content grid-2">
+<div class="svg-panel panel fragment">
+<svg aria-label="HAProxy giua client va server" role="img" viewbox="0 0 780 430">
+<defs>
+<marker id="arrowBlue" markerheight="10" markerwidth="10" orient="auto" refx="8" refy="3">
+<path d="M0,0 L0,6 L9,3 z" fill="#38a6ff"></path>
+</marker>
+<marker id="arrowOrange" markerheight="10" markerwidth="10" orient="auto" refx="8" refy="3">
+<path d="M0,0 L0,6 L9,3 z" fill="#ffb454"></path>
+</marker>
+</defs>
+<text fill="#a9b8cc" font-size="22" text-anchor="middle" x="390" y="36">Internet</text>
+<rect fill="#10233b" height="58" rx="8" stroke="#38a6ff" width="180" x="300" y="70"></rect>
+<text fill="#f2f7ff" font-size="24" font-weight="700" text-anchor="middle" x="390" y="106">Client</text>
+<line marker-end="url(#arrowBlue)" stroke="#38a6ff" stroke-width="4" x1="390" x2="390" y1="128" y2="182">
+</line>
+<text fill="#38a6ff" font-size="18" x="416" y="160">HTTP / HTTPS</text>
+<rect fill="rgba(255,180,84,0.12)" height="92" rx="8" stroke="#ffb454" stroke-width="2" width="240" x="270" y="190"></rect>
+<text fill="#ffffff" font-size="30" font-weight="800" text-anchor="middle" x="390" y="230">HAProxy</text>
+<text fill="#ffe2b6" font-size="20" text-anchor="middle" x="390" y="258">Reverse Proxy</text>
+<line marker-end="url(#arrowOrange)" stroke="#ffb454" stroke-width="4" x1="390" x2="390" y1="282" y2="326">
+</line>
+<text fill="#ffb454" font-size="18" x="418" y="313">Phan phoi request</text>
+<line stroke="#2b4360" stroke-width="3" x1="390" x2="170" y1="326" y2="326"></line>
+<line stroke="#2b4360" stroke-width="3" x1="390" x2="610" y1="326" y2="326"></line>
+<line marker-end="url(#arrowBlue)" stroke="#38a6ff" stroke-width="3" x1="170" x2="170" y1="326" y2="360">
+</line>
+<line marker-end="url(#arrowBlue)" stroke="#38a6ff" stroke-width="3" x1="390" x2="390" y1="326" y2="360">
+</line>
+<line marker-end="url(#arrowBlue)" stroke="#38a6ff" stroke-width="3" x1="610" x2="610" y1="326" y2="360">
+</line>
+<rect fill="rgba(53,208,127,0.12)" height="52" rx="8" stroke="#35d07f" width="156" x="92" y="364"></rect>
+<rect fill="rgba(53,208,127,0.12)" height="52" rx="8" stroke="#35d07f" width="156" x="312" y="364"></rect>
+<rect fill="rgba(53,208,127,0.12)" height="52" rx="8" stroke="#35d07f" width="156" x="532" y="364"></rect>
+<text fill="#f2f7ff" font-size="20" text-anchor="middle" x="170" y="397">Server 1</text>
+<text fill="#f2f7ff" font-size="20" text-anchor="middle" x="390" y="397">Server 2</text>
+<text fill="#f2f7ff" font-size="20" text-anchor="middle" x="610" y="397">Server 3</text>
+</svg>
+</div>
+<div class="stack">
+<div class="role-list">
+<div class="role fragment">Tiếp nhận request từ client</div>
+<div class="role fragment">Chọn server phù hợp</div>
+<div class="role fragment">Chuyển tiếp request</div>
+<div class="role fragment">Trả response về client</div>
+</div>
+<p class="subtitle fragment">HAProxy không tạo nội dung website; nó điều phối lưu lượng và che cụm
+                        server phía
+                        sau khỏi client.</p>
+</div>
+</div>
+</section>
+<section aria-label="Slide 2" class="slide">
+<header class="slide-header">
+<div>
+<p class="kicker">Mục 2.1 - Luồng request</p>
+<h2>Một request đi qua HAProxy như thế nào?</h2>
+<p class="subtitle">Ví dụ xuyên suốt cho toàn bộ phần này:</p>
+<span class="url-chip">http://example.com/api/users</span>
+</div>
+<div class="badge">Client -&gt; HAProxy -&gt; Server -&gt; Client</div>
+</header>
+<div class="content">
+<div class="flow-vertical">
+<div class="flow-node fragment"><span class="flow-index">1</span><strong>Client gửi
+                            request</strong><span class="mini-label">HTTP đến example.com</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">2</span><strong>Frontend nhận kết
+                            nối</strong><span class="mini-label">IP/port, mode TCP hoặc HTTP</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">3</span><strong>Phân tích Layer 4 hoặc
+                            Layer
+                            7</strong><span class="mini-label">TCP metadata hoặc HTTP URL/Header</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">4</span><strong>Chọn backend</strong><span class="decision">/api -&gt; API backend</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">5</span><strong>Loại server
+                            DOWN</strong><span class="mini-label">dựa trên health check</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">6</span><strong>Áp dụng thuật toán cân bằng
+                            tải</strong><span class="mini-label">Round Robin, Least Connections...</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">7</span><strong>Chuyển đến
+                            server</strong><span class="mini-label">server xử lý request</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">8</span><strong>Response quay về
+                            client</strong><span class="mini-label">qua HAProxy</span></div>
+</div>
+</div>
+</section>
+<section aria-label="Slide 3" class="slide">
+<header class="slide-header">
+<div>
+<p class="kicker">Mục 2.2 - Layer 4 và Layer 7</p>
+<h2>HAProxy có thể quyết định theo kết nối hoặc theo nội dung HTTP</h2>
+<p class="subtitle">Layer 4 nhanh và đơn giản. Layer 7 linh hoạt hơn vì đọc được Host, URL, Header,
+                        Cookie.
+                    </p>
+</div>
+<div class="badge">Connection vs Request Content</div>
+</header>
+<div class="content l4l7">
+<div class="mode-card panel fragment">
+<h3><span class="tag blue">Layer 4</span> TCP Load Balancing</h3>
+<div class="mode-points">
+<div class="point">Hoạt động trên TCP</div>
+<div class="point">Thấy IP, port và trạng thái kết nối</div>
+<div class="point">Không phân tích sâu HTTP</div>
+<div class="point">Phù hợp TCP, DB, SMTP</div>
+</div>
+<div class="flow-row">
+<div class="box primary">TCP Connection</div>
+<div class="arrow">→</div>
+<div class="box proxy">HAProxy</div>
+<div class="arrow">→</div>
+<div class="box server-up">TCP Server</div>
+</div>
+</div>
+<div class="mode-card panel fragment">
+<h3><span class="tag orange">Layer 7</span> HTTP Load Balancing</h3>
+<div class="mode-points">
+<div class="point">Hoạt động trên HTTP</div>
+<div class="point">Thấy Host, URL, Header, Cookie</div>
+<div class="point">Hiểu nội dung request</div>
+<div class="point">Phù hợp Website, API</div>
+</div>
+<div class="route-list">
+<div class="route"><code>/api</code><span class="arrow">→</span><span>API Backend</span></div>
+<div class="route"><code>/images</code><span class="arrow">→</span><span>Image Backend</span>
+</div>
+<div class="route"><code>/admin</code><span class="arrow">→</span><span>Admin Backend</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section aria-label="Slide 4" class="slide">
+<header class="slide-header">
+<div>
+<p class="kicker">Mục 2.3 - HTTPS và TLS Termination</p>
+<h2>HAProxy xử lý HTTPS bằng TLS Termination</h2>
+<p class="subtitle">HTTPS là HTTP được bảo vệ bằng TLS. Với TLS Termination, kết nối TLS từ client
+                        kết thúc
+                        tại HAProxy.</p>
+</div>
+<div class="badge">Client HTTPS -&gt; HAProxy</div>
+</header>
+<div class="content https-layout">
+<div>
+<div class="https-card panel fragment">
+<h3>HTTPS = HTTP được bảo vệ bằng TLS</h3>
+<div class="key-points">
+<div class="key-point"><span class="key-icon">1</span><span>Mã hóa dữ liệu trên đường
+                                    truyền</span></div>
+<div class="key-point"><span class="key-icon">2</span><span>Xác thực máy chủ bằng
+                                    certificate</span></div>
+<div class="key-point"><span class="key-icon">3</span><span>Ngăn dữ liệu bị đọc trộm hoặc
+                                    thay đổi</span>
+</div>
+</div>
+</div>
+<div class="https-card panel fragment">
+<h3>Vai trò của HAProxy</h3>
+<div class="key-points">
+<div class="key-point"><span class="key-icon">✓</span><span>Quản lý certificate và private
+                                    key</span>
+</div>
+<div class="key-point"><span class="key-icon">✓</span><span>Thực hiện TLS Handshake</span>
+</div>
+<div class="key-point"><span class="key-icon">✓</span><span>Mã hóa và giải mã dữ liệu</span>
+</div>
+<div class="key-point"><span class="key-icon">✓</span><span>Định tuyến request ở Layer
+                                    7</span></div>
+</div>
+</div>
+</div>
+<div class="flow-vertical termination-flow panel" style="padding: 0.9rem;">
+<div class="flow-node fragment"><span class="flow-index">1</span><strong>Client truy cập bằng
+                            HTTPS</strong>
+</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">2</span><strong>Client kết nối đến
+                            HAProxy</strong>
+</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">3</span><strong>TLS Handshake</strong><span class="mini-label">HAProxy gửi certificate, hai bên lập khóa mã hóa</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">4</span><strong>Client gửi request đã mã
+                            hóa</strong>
+</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">5</span><strong>HAProxy giải mã
+                            request</strong><span class="decision">đọc Host, URL, Header</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">6</span><strong>Chọn backend phù
+                            hợp</strong><span class="mini-label">định tuyến Layer 7</span></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">7</span><strong>Backend xử lý
+                            request</strong></div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">8</span><strong>HAProxy mã hóa
+                            response</strong><span class="mini-label">trả về client</span></div>
+</div>
+</div>
+</section>
+<section aria-label="Slide 5" class="slide">
+<header class="slide-header">
+<div>
+<p class="kicker">Mục 2.4 - Health Check</p>
+<h2>Server DOWN bị loại khỏi cân bằng tải</h2>
+<p class="subtitle">Thuật toán cân bằng tải chỉ chọn trong các server đang được đánh giá là UP.</p>
+</div>
+<div class="badge">UP -&gt; nhận request | DOWN -&gt; bỏ qua</div>
+</header>
+<div class="content health-layout">
+<div class="panel" style="padding: 1.1rem;">
+<h3>Backend web_servers</h3>
+<div class="server-grid">
+<div class="server-card up fragment">
+<h3>Server 1</h3>
+<div class="status">UP</div>
+<p class="mini-label">Nhận request</p>
+</div>
+<div class="server-card down fragment">
+<h3>Server 2</h3>
+<div class="status">DOWN</div>
+<div class="skip">x</div>
+<p class="mini-label">Bị bỏ qua</p>
+</div>
+<div class="server-card up fragment">
+<h3>Server 3</h3>
+<div class="status">UP</div>
+<p class="mini-label">Nhận request</p>
+</div>
+</div>
+<div class="request-line fragment">Request chỉ đi đến Server 1 hoặc Server 3</div>
+</div>
+<div class="stack">
+<pre class="code-block fragment"><code><span class="kw">backend</span> <span class="name">web_servers</span>
+    <span class="kw">balance</span> roundrobin
+    <span class="kw">server</span> web1 <span class="num">192.168.1.11</span>:<span class="num">80</span> check
+    <span class="kw">server</span> web2 <span class="num">192.168.1.12</span>:<span class="num">80</span> check
+    <span class="kw">server</span> web3 <span class="num">192.168.1.13</span>:<span class="num">80</span> check</code></pre>
+<div class="mode-points">
+<div class="point fragment">Server phản hồi bình thường -&gt; <span class="tag green">UP</span>
+</div>
+<div class="point fragment">Server lỗi nhiều lần -&gt; <span class="tag red">DOWN</span></div>
+<div class="point fragment">Server phục hồi -&gt; <span class="tag green">UP trở lại</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section aria-label="Slide 7" class="slide">
+<header class="slide-header">
+<div>
+<p class="kicker">Mục 2.5 - Tổng kết kiến trúc</p>
+<h2>Nguyên lý hoạt động của HAProxy là một chuỗi quyết định</h2>
+<p class="subtitle">Từ request đầu vào đến response trả về client, HAProxy liên tục phân tích, kiểm
+                        tra và
+                        chọn đường đi phù hợp.</p>
+</div>
+<div class="badge">Kết thúc Mục 5</div>
+</header>
+<div class="content summary">
+<div class="flow-vertical">
+<div class="flow-node fragment"><span class="flow-index">1</span>Client gửi HTTP/HTTPS</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">2</span>Frontend nhận kết nối</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">3</span>Xử lý Layer 4 hoặc Layer 7</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">4</span>TLS Termination tại HAProxy</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">5</span>Chọn backend</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">6</span>Health check loại server DOWN</div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">7</span>Load balancing chọn healthy server
+                    </div>
+<div class="arrow-down fragment">↓</div>
+<div class="flow-node fragment"><span class="flow-index">8</span>Response trả về client</div>
+</div>
+<div>
+<div class="takeaways">
+<div class="takeaway fragment"><span>1</span>HAProxy là điểm trung gian tiếp nhận lưu lượng.
+                        </div>
+<div class="takeaway fragment"><span>2</span>HAProxy phân tích request và lựa chọn server phù
+                            hợp.</div>
+<div class="takeaway fragment"><span>3</span>Health Check và TLS giúp tăng tính sẵn sàng và bảo
+                            mật.</div>
+</div>
+<p class="closing fragment">HAProxy hoạt động như một bộ điều phối lưu lượng thông minh: phân phối
+                        request,
+                        phân tích giao thức, kiểm tra trạng thái server, hỗ trợ TLS và tự động tránh server gặp sự cố.
+                    </p>
+</div>
+</div>
+</section>
+<div class="slide transition-slide">
+<div class="transition-label">Mục 3</div>
+<h2>So sánh HAProxy với Nginx và Apache</h2>
+<p>So sánh HAProxy, Nginx và Apache theo vai trò, tầng xử lý, tình huống sử dụng và hệ sinh thái.</p>
+</div>
+<section class="slide muc3-slide">
+<div class="kicker">Mục 3.1 - So sánh chi tiết</div>
+<h2>So sánh chi tiết HAProxy vs Nginx vs Apache</h2>
+<p class="subtitle">Phân biệt bản chất kỹ thuật: công cụ nào sinh ra để làm gì, mạnh ở đâu, yếu ở đâu.</p>
+<table class="compare-large">
+<thead>
+<tr>
+<th>Tiêu chí</th>
+<th><span class="tool-head"><span class="tool-name">HAProxy</span><span class="tool-role">Dedicated load balancer / reverse proxy</span></span></th>
+<th><span class="tool-head"><span class="tool-name">Nginx</span><span class="tool-role">Web server đa năng + proxy + cache</span></span></th>
+<th><span class="tool-head"><span class="tool-name">Apache httpd</span><span class="tool-role">Web server module-based / legacy-friendly</span></span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bản chất</td>
+<td><span class="mini-chip good">LB-native</span> Điều phối traffic, high availability, failover, L4/L7 proxy.</td>
+<td><span class="mini-chip good">đa năng</span> Serve web, reverse proxy, cache, TLS, LB phổ thông.</td>
+<td><span class="mini-chip warn">legacy-friendly</span> Serve web bằng hệ module lớn, linh hoạt cho app cũ.</td>
+</tr>
+<tr>
+<td>Tác vụ nên giao</td>
+<td>LB chuyên sâu cho API, microservices, TCP service, cụm backend lớn.</td>
+<td>Static file, web gateway, reverse proxy HTTP, cache, TLS termination, LB nhẹ.</td>
+<td>PHP/CMS cũ, shared hosting, website cần <span class="inline-code">.htaccess</span> hoặc module đặc thù.</td>
+</tr>
+<tr>
+<td>Tầng xử lý</td>
+<td><span class="mini-chip">L4 TCP</span><span class="mini-chip">L7 HTTP</span> Chọn theo connection hoặc nội dung request.</td>
+<td><span class="mini-chip">HTTP</span><span class="mini-chip">Stream</span> HTTP mạnh; TCP/UDP qua Stream module.</td>
+<td><span class="mini-chip">HTTP/HTTPS</span> Proxy/LB thông qua <span class="inline-code">mod_proxy</span>.</td>
+</tr>
+<tr>
+<td>Connection</td>
+<td>Event-driven, non-blocking; tối ưu cho nhiều connection đồng thời.</td>
+<td>Event-driven, non-blocking; nhẹ khi serve static và proxy HTTP.</td>
+<td>MPM: prefork / worker / event; không chỉ là “mỗi request một process”.</td>
+</tr>
+<tr>
+<td>LB &amp; health check</td>
+<td><span class="mini-chip good">sâu nhất</span> roundrobin, leastconn, hash, weights, stickiness, queue, retries; active TCP/HTTP check chi tiết.</td>
+<td><span class="mini-chip good">đủ dùng</span> round-robin, least_conn, ip_hash, hash; Open Source chủ yếu passive check.</td>
+<td><span class="mini-chip warn">qua module</span> byrequests, bytraffic, bybusyness; có <span class="inline-code">mod_proxy_hcheck</span>.</td>
+</tr>
+<tr>
+<td>Routing / rule</td>
+<td><span class="mini-chip good">ACL mạnh</span> IP, path, header, cookie, method, rate, backend state.</td>
+<td>Routing rõ theo <span class="inline-code">server_name</span>, <span class="inline-code">location</span>, rewrite, upstream.</td>
+<td>VirtualHost, ProxyPass, RewriteRule; mạnh nhưng dễ phân tán cấu hình.</td>
+</tr>
+<tr>
+<td>Static / cache</td>
+<td><span class="mini-chip risk">không nên</span> Không sinh ra để serve file tĩnh.</td>
+<td><span class="mini-chip good">rất hợp</span> Static, cache, gzip, reverse proxy web.</td>
+<td><span class="mini-chip warn">dùng được</span> Phù hợp web truyền thống, thường nặng hơn Nginx.</td>
+</tr>
+<tr>
+<td>Legacy / module</td>
+<td>Ít module app-level; tập trung vào traffic layer.</td>
+<td>Module có, nhưng không theo kiểu cấu hình <span class="inline-code">.htaccess</span> từng thư mục.</td>
+<td><span class="mini-chip good">mạnh nhất</span> .htaccess, mod_rewrite, mod_php, shared hosting.</td>
+</tr>
+<tr>
+<td>Vận hành</td>
+<td>Stats page, runtime API, log chi tiết; dễ quan sát trạng thái backend.</td>
+<td>Log tốt; observability nâng cao thường cần exporter/tool ngoài hoặc Nginx Plus.</td>
+<td>server-status, balancer-manager; quen thuộc với hosting truyền thống.</td>
+</tr>
+</tbody>
+</table>
+<div class="compare-note-row">
+<div class="note-box"><b>Nhớ nhanh:</b> HAProxy = traffic control chuyên nghiệp.</div>
+<div class="note-box"><b>Nhớ nhanh:</b> Nginx = web gateway cho static/proxy/cache.</div>
+<div class="note-box"><b>Nhớ nhanh:</b> Apache = app cũ, module, .htaccess, shared hosting.</div>
+</div>
+<aside class="notes">Slide này nên nói theo bản chất: HAProxy sinh ra để điều phối traffic; Nginx là web gateway đa năng; Apache là web server truyền thống mạnh ở module và app cũ. Không nói Apache lỗi thời hoặc Nginx thay thế tất cả.</aside>
+</section>
+<section class="slide muc3-slide">
+<div class="kicker">Mục 3.2 - Công nghệ nào cho tác vụ nào?</div>
+<h2>Chọn công cụ theo nhiệm vụ thực tế</h2>
+<p class="subtitle">Đừng chọn theo độ nổi tiếng. Chọn theo tác vụ đang là “điểm đau” của hệ thống.</p>
+<div class="decision-full">
+<table class="task-table-wide">
+<thead>
+<tr><th>Tác vụ / tình huống</th><th>Nên chọn</th><th>Lý do ngắn gọn</th></tr>
+</thead>
+<tbody>
+<tr><td>Load balancing là chức năng sống còn: nhiều backend, nhiều connection, cần failover nhanh.</td><td><span class="choice">HAProxy</span></td><td>Kiểm soát traffic sâu, active health check mạnh, nhiều policy LB.</td></tr>
+<tr><td>Website cần serve ảnh, CSS, JS, frontend build và proxy API về app server.</td><td><span class="choice nginx">Nginx</span></td><td>Mạnh về static content, reverse proxy và cấu hình web gateway.</td></tr>
+<tr><td>WordPress/PHP/CMS cũ phụ thuộc .htaccess, mod_rewrite, mod_php hoặc cPanel.</td><td><span class="choice apache">Apache</span></td><td>Tương thích tốt với hệ sinh thái hosting truyền thống.</td></tr>
+<tr><td>Cân bằng tải TCP: database proxy, SMTP, raw TCP service, không cần đọc nội dung HTTP.</td><td><span class="choice">HAProxy</span></td><td>L4 TCP proxy rõ ràng, ổn định, dễ kiểm soát connection.</td></tr>
+<tr><td>Reverse proxy đơn giản cho 2–3 backend app server.</td><td><span class="choice nginx">Nginx</span></td><td>Đủ dùng, dễ triển khai, ít overhead vận hành.</td></tr>
+<tr><td>Cần route theo path/header/cookie, rate limit, stickiness hoặc trạng thái backend.</td><td><span class="choice">HAProxy</span></td><td>ACL và stick table giúp ra quyết định theo traffic policy.</td></tr>
+<tr><td>Hệ lớn vừa có service mới, vừa có app legacy cần giữ lại.</td><td><span class="choice combo">Kết hợp</span></td><td>HAProxy ở ngoài; Nginx/Apache phục vụ workload phù hợp bên trong.</td></tr>
+</tbody>
+</table>
+<div class="memory-strip">
+<div class="note-box"><b>HAProxy:</b> traffic lớn, LB chuyên sâu, failover, TCP/HTTP routing.</div>
+<div class="note-box"><b>Nginx:</b> static file, web gateway, reverse proxy đơn giản, cache.</div>
+<div class="note-box"><b>Apache:</b> legacy web app, .htaccess, mod_php, shared hosting.</div>
+</div>
+</div>
+<aside class="notes">Slide này chuyển từ kiến thức sang quyết định triển khai. Nếu nhiệm vụ chính là chia traffic, HAProxy hợp hơn; nếu nhiệm vụ chính là serve web và proxy đơn giản, Nginx hợp hơn; nếu nhiệm vụ chính là giữ tương thích app cũ, Apache hợp hơn. Điểm quan trọng là không chọn theo độ nổi tiếng.</aside>
+</section>
+<section class="slide muc3-slide">
+<div class="kicker">Mục 3.3 - Khác biệt kỹ thuật đáng chú ý</div>
+<h2>Điểm khác biệt cần nhớ</h2>
+<div class="tech-grid big">
+<div class="tech-card">
+<h3>1. Cơ chế xử lý connection</h3>
+<ul>
+<li><b>HAProxy/Nginx:</b> event-driven, non-blocking, hợp nhiều connection đồng thời.</li>
+<li><b>Apache:</b> dùng MPM: prefork, worker hoặc event; không nên nói Apache chỉ process-based.</li>
+<li><b>Ý nghĩa:</b> workload nhiều kết nối chờ thường hợp event-driven hơn.</li>
+</ul>
+</div>
+<div class="tech-card">
+<h3>2. Health check &amp; failover</h3>
+<ul>
+<li><b>HAProxy:</b> active check là năng lực lõi: fall/rise/inter, HTTP check, TCP check.</li>
+<li><b>Nginx OSS:</b> chủ yếu passive check; active check đầy đủ thường ở Nginx Plus.</li>
+<li><b>Apache:</b> có mod_proxy_hcheck, nhưng mang tính module hơn là LB-native.</li>
+</ul>
+</div>
+<div class="tech-card">
+<h3>3. Mức độ điều khiển traffic</h3>
+<ul>
+<li><b>HAProxy:</b> ACL mạnh; route theo path/header/cookie/IP/rate/backend state.</li>
+<li><b>Nginx:</b> route tốt theo server_name, location, URI; hợp web gateway.</li>
+<li><b>Apache:</b> route bằng VirtualHost, ProxyPass, RewriteRule; dễ phân tán cấu hình.</li>
+</ul>
+</div>
+<div class="tech-card">
+<h3>4. Hệ sinh thái &amp; chi phí vận hành</h3>
+<ul>
+<li><b>HAProxy:</b> cần hiểu network/LB tốt, đổi lại kiểm soát production sâu.</li>
+<li><b>Nginx:</b> phổ biến trong web/cloud/container; team dev dễ tiếp cận.</li>
+<li><b>Apache:</b> migration có rủi ro nếu app cũ phụ thuộc module hoặc .htaccess.</li>
+</ul>
+</div>
+</div>
+<div class="pitfall-row big">
+<div class="pitfall"><b>Không nói:</b> “Apache luôn chậm.” Đúng hơn: phụ thuộc MPM, module, workload.</div>
+<div class="pitfall"><b>Không nói:</b> “Nginx không có health check.” Đúng hơn: OSS chủ yếu passive, Plus có active.</div>
+<div class="pitfall"><b>Không nói:</b> “HAProxy thay web server.” Nó điều phối traffic, không serve nội dung chính.</div>
+</div>
+<aside class="notes">Slide này là phần chống bị hỏi vặn. Điểm quan trọng: Apache hiện đại có event MPM; Nginx Open Source chủ yếu passive health check còn Nginx Plus có active; HAProxy mạnh vì thiết kế xoay quanh traffic và backend state.</aside>
+</section>
+<div class="slide transition-slide">
+<div class="transition-label">Mục 4</div>
+<h2>Hướng dẫn cài đặt, cấu hình và vận hành HAProxy</h2>
+<p>Cài đặt HAProxy, cấu hình firewall, giải thích tệp haproxy.cfg, validate và reload zero-downtime.</p>
+</div>
+<div class="slide">
+<h2>4.1 Khởi Tạo Môi Trường &amp; Quản Lý Dịch Vụ HAProxy</h2>
+<p class="slide-subtitle" style="font-size: 1.35rem;">Cài đặt gói, mở Firewall và bộ lệnh vận hành Systemd
+                toàn
+                diện</p>
+<div class="layout-2col">
+<div class="col" style="flex: 0.9;">
+<div class="box" style="border-left-color: var(--accent); padding: 12px 16px; margin-bottom: 10px;">
+<h3 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 6px;">1. Cài đặt các gói hệ thống
+                        </h3>
+<pre style="font-size: 1.05rem; padding: 6px 10px;"><span class="cmd-comment"># Ubuntu / Debian</span>
+sudo apt update &amp;&amp; sudo apt install haproxy -y
+
+<span class="cmd-comment"># RHEL / CentOS / Rocky</span>
+sudo yum install haproxy -y</pre>
+</div>
+<div class="box" style="border-left-color: var(--success); padding: 12px 16px; margin-bottom: 10px;">
+<h3 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 6px;">2. Kiểm tra phiên bản</h3>
+<pre style="font-size: 1.05rem; padding: 6px 10px;">haproxy -v  <span class="cmd-comment"># Xác minh đã cài đặt thành công</span></pre>
+</div>
+<div class="box" style="border-left-color: var(--warning); padding: 12px 16px;">
+<h3 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 6px;">3. Cấu hình Firewall (Mở cổng)
+                        </h3>
+<pre style="font-size: 0.95rem; padding: 6px 10px;"><span class="cmd-comment"># UFW (Ubuntu):</span>
+sudo ufw allow 80/tcp &amp;&amp; sudo ufw allow 443/tcp &amp;&amp; sudo ufw allow 8404/tcp
+
+<span class="cmd-comment"># Firewalld (CentOS/RHEL):</span>
+sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=8404/tcp --permanent
+sudo firewall-cmd --reload</pre>
+</div>
+</div>
+<div class="col" style="flex: 1.1;">
+<div class="box" style="border-left-color: var(--accent); padding: 12px 16px; height: 100%; box-sizing: border-box;">
+<h3 style="font-size: 1.25rem; margin-top: 0; margin-bottom: 8px;">4. Các lệnh quản lý dịch vụ
+                            với <span class="highlight">systemctl</span></h3>
+<table style="font-size: 1.15rem;">
+<thead>
+<tr>
+<th style="width: 48%;">Lệnh Systemd</th>
+<th>Giải thích &amp; Mục đích sử dụng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="cmd-keyword">systemctl start</span> haproxy</td>
+<td>Bật / khởi chạy dịch vụ HAProxy ngay lập tức.</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">systemctl stop</span> haproxy</td>
+<td>Tắt / dừng dịch vụ HAProxy (ngắt nhận lưu lượng).</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">systemctl enable</span> haproxy</td>
+<td>Cho phép HAProxy tự khởi động cùng OS khi boot server.</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">systemctl disable</span> haproxy</td>
+<td>Tắt tính năng tự động khởi động cùng hệ thống.</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">systemctl restart</span> haproxy</td>
+<td>Tắt hoàn toàn rồi bật lại (gây đứt kết nối tạm thời).</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">systemctl reload</span> haproxy</td>
+<td>Nạp lại file cấu hình mới mà KHÔNG đứt kết nối (Zero-Downtime).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="slide">
+<h2> 4.2 Cấu Trúc File &amp; Khối Global, Defaults</h2>
+<p class="slide-subtitle" style="font-size: 1.35rem;">Tổng quan cấu trúc haproxy.cfg và các tham số cấu hình
+                hệ
+                thống ban đầu</p>
+<div class="layout-2col">
+<div class="col" style="flex: 1;">
+<div class="box" style="padding: 10px 14px; margin-bottom: 10px;">
+<p class="highlight" style="font-size: 1.3rem; margin:0 0 4px 0;">/etc/haproxy/haproxy.cfg</p>
+<pre style="font-size: 1.15rem; padding: 6px 10px; margin: 0;">sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak</pre>
+</div>
+<div class="box" style="padding: 10px 14px;">
+<h3 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 6px;">5 Khối Cấu Hình Chính</h3>
+<table style="font-size: 1.05rem;">
+<thead>
+<tr>
+<th style="width: 28%;">Khối</th>
+<th>Vai Trò &amp; Phạm Vi Tác Động</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="highlight">global</td>
+<td>Cấu hình hệ thống toàn cục (chạy ngầm, user/group, giới hạn tài nguyên).</td>
+</tr>
+<tr>
+<td class="highlight">defaults</td>
+<td>Đặt tham số mặc định dùng chung (timeout, log format, chế độ HTTP/TCP).</td>
+</tr>
+<tr>
+<td class="highlight">frontend</td>
+<td>Tiếp nhận kết nối từ người dùng (Client), định nghĩa Cổng (Port) &amp; luật ACL.
+                                    </td>
+</tr>
+<tr>
+<td class="highlight">backend</td>
+<td>Khai báo nhóm server ứng dụng (Server Pool) &amp; chọn thuật toán cân bằng tải.
+                                    </td>
+</tr>
+<tr>
+<td class="highlight">listen</td>
+<td>Khối gộp chung cả Frontend &amp; Backend (thường dùng tạo trang Stats theo dõi).
+                                    </td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="col" style="flex: 1;">
+<div class="box" style="border-left-color: var(--accent); padding: 10px 14px; margin-bottom: 10px;">
+<h3 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 6px;">Lệnh <span class="highlight">global</span>
+                            tiêu biểu</h3>
+<table style="font-size: 1.05rem;">
+<tbody>
+<tr>
+<td style="width: 42%;"><span class="cmd-keyword">log</span> /dev/log local0</td>
+<td>Đẩy toàn bộ nhật ký (log) hoạt động của HAProxy sang dịch vụ Syslog hệ thống.
+                                    </td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">maxconn</span> 4096</td>
+<td>Giới hạn tối đa 4096 kết nối đồng thời tại một thời điểm (chống quá tải).</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">user</span> / <span class="cmd-keyword">group</span>
+</td>
+<td>Hạ quyền tiến trình chạy dưới tài khoản thường (thay vì root) để an toàn bảo
+                                        mật.</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">stats socket</span></td>
+<td>Tạo cổng giao tiếp Socket để quản trị viên truy vấn &amp; điều khiển khi đang
+                                        chạy.
+                                    </td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="box" style="border-left-color: var(--success); padding: 10px 14px;">
+<h3 style="font-size: 1.15rem; margin-top: 0; margin-bottom: 6px;">Lệnh <span class="highlight">defaults</span> tiêu biểu</h3>
+<table style="font-size: 1.05rem;">
+<tbody>
+<tr>
+<td style="width: 42%;"><span class="cmd-keyword">mode</span> http</td>
+<td>Chọn chế độ làm việc Layer 7 (HTTP - đọc được URL) hoặc Layer 4 (TCP).</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">option</span> httplog</td>
+<td>Bật ghi log chi tiết chuẩn HTTP (URI, mã trả về 200/404, IP client).</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">timeout connect</span></td>
+<td>Thời gian tối đa HAProxy chờ để thiết lập kết nối tới máy chủ Backend (VD: 5s).
+                                    </td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">timeout client/server</span></td>
+<td>Thời gian tối đa chờ phản hồi từ Client/Backend trước khi ngắt kết nối treo.
+                                    </td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="slide">
+<h2>4.3 Cấu Hình Khối Frontend &amp; Backend</h2>
+<p class="slide-subtitle" style="font-size: 1.5rem;">Bộ lệnh xử lý luồng giao thông mạng, ACL thông minh và
+                giám
+                sát sức khỏe</p>
+<div class="layout-2col">
+<div class="col" style="flex: 1.15;">
+<div class="box" style="padding: 12px 16px;">
+<h3 style="font-size: 1.15rem; margin-top: 0;">Các lệnh nổi bật trong <span class="highlight">frontend</span>
+                            &amp; <span class="highlight">backend</span></h3>
+<table style="font-size: 1.12rem;">
+<thead>
+<tr>
+<th style="width: 32%;">Lệnh</th>
+<th style="width: 18%;">Vị trí</th>
+<th>Ý nghĩa &amp; Cách hoạt động</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="cmd-keyword">bind</span> *:80</td>
+<td>Frontend</td>
+<td>Mở cổng mạng 80 trên mọi card mạng để lắng nghe truy cập từ Client.</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">acl</span> &lt;tên&gt;</td>
+<td>Frontend</td>
+<td>Tạo bộ lọc điều kiện (ví dụ: kiểm tra xem URL có chứa `/api/` hay không).</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">use_backend</span></td>
+<td>Frontend</td>
+<td>Điều hướng request sang cụm Backend tương ứng khi thỏa mãn điều kiện ACL.</td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">default_backend</span></td>
+<td>Frontend</td>
+<td>Cụm máy chủ mặc định sẽ xử lý nếu request không khớp với bất kỳ luật ACL nào.
+                                    </td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">balance</span> roundrobin</td>
+<td>Backend</td>
+<td>Thuật toán cân bằng tải - chuyển luân phiên xoay vòng request cho từng server.
+                                    </td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">option httpchk</span></td>
+<td>Backend</td>
+<td>Kiểm tra sức khỏe server bằng HTTP GET (chỉ coi là sống nếu trả về mã 2xx/3xx).
+                                    </td>
+</tr>
+<tr>
+<td><span class="cmd-keyword">server</span> ... <span class="cmd-keyword">check</span></td>
+<td>Backend</td>
+<td>Khai báo IP/Port của server backend và bật tự động kiểm tra xem server sống hay
+                                        chết.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="col" style="flex: 0.85;">
+<pre style="font-size: 1.1rem; padding: 10px 14px; margin-bottom: 10px;"><span class="cmd-comment"># VÍ DỤ FILE CONFIG THỰC TẾ (TEL4VN)</span>
+frontend web_gateway
+    bind *:80
+    <span class="cmd-comment"># Kiểm tra nếu đường dẫn bắt đầu bằng /api</span>
+    acl is_api path_beg -i /api/
+    use_backend api_servers if is_api
+    default_backend static_web_servers
+
+backend static_web_servers
+    balance roundrobin
+    option httpchk GET /health.html
+    server web1 192.168.1.10:80 check inter 2s fall 3 rise 2
+    server web2 192.168.1.11:80 check inter 2s fall 3 rise 2
+
+<span class="cmd-comment"># TRANG THỐNG KÊ LƯU LƯỢNG (PORT 8404)</span>
+listen stats
+    bind *:8404
+    mode http
+    stats enable
+    stats uri /stats
+    stats auth admin:p@ssword123</pre>
+</div>
+</div>
+</div>
+<div class="slide transition-slide">
+<div class="transition-label">Mục 5</div>
+<h2>Các Lỗi Phổ Biến &amp; Hậu Quả Thực Tế</h2>
+<p>Các lỗi thường gặp khi triển khai HAProxy và các quy tắc tối ưu vận hành thực tế.</p>
+</div>
+<div class="slide">
+<h2>Các Lỗi Phổ Biến &amp; Hậu Quả Thực Tế</h2>
+<p class="slide-subtitle" style="font-size: 1.5rem;">Phân tích nguyên nhân sự cố, tác động hạ tầng và quy
+                tắc khắc
+                phục chuẩn trong vận hành
+            </p>
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+<!-- Item 1 -->
+<div class="box" style="padding: 12px 18px; border-left: 4px solid var(--accent);">
+<h3 style="margin: 0 0 4px 0; font-size: 1.5rem; color: #fff;">1. Dùng systemctl restart trên
+                        Production</h3>
+<p style="font-size: 1.35rem; margin: 0 0 4px 0; line-height: 1.45;"><strong>Hậu quả:</strong> Hủy
+                        lập tức các
+                        kết nối TCP và Session dở dang của người dùng.</p>
+<p style="font-size: 1.35rem; margin: 0; line-height: 1.45;"><strong>Giải pháp:</strong> Luôn dùng
+                        <code class="highlight" style="font-size: 1.25rem;">systemctl reload haproxy</code> để đảm bảo
+                        Zero-downtime.
+                    </p>
+</div>
+<!-- Item 2 -->
+<div class="box" style="padding: 12px 18px; border-left: 4px solid var(--accent);">
+<h3 style="margin: 0 0 4px 0; font-size: 1.5rem; color: #fff;">2. Bỏ qua kiểm tra cú pháp (haproxy
+                        -c)</h3>
+<p style="font-size: 1.35rem; margin: 0 0 4px 0; line-height: 1.45;"><strong>Hậu quả:</strong> Cấu
+                        hình sai cú
+                        pháp khiến tiến trình HAProxy không thể khởi động hoặc bị treo.</p>
+<p style="font-size: 1.35rem; margin: 0; line-height: 1.45;"><strong>Giải pháp:</strong> Bắt buộc
+                        chạy lệnh
+                        <code class="highlight" style="font-size: 1.25rem;">haproxy -c -f /etc/haproxy/haproxy.cfg</code> trước khi
+                        nạp lại.
+                    </p>
+</div>
+<!-- Item 3 -->
+<div class="box" style="padding: 12px 18px; border-left: 4px solid var(--accent);">
+<h3 style="margin: 0 0 4px 0; font-size: 1.5rem; color: #fff;">3. Quên cấu hình Health Check (check)
+                    </h3>
+<p style="font-size: 1.35rem; margin: 0 0 4px 0; line-height: 1.45;"><strong>Hậu quả:</strong>
+                        HAProxy vẫn
+                        điều hướng lưu lượng vào Backend đã hỏng, gây lỗi 502/504 Bad Gateway.</p>
+<p style="font-size: 1.35rem; margin: 0; line-height: 1.45;"><strong>Giải pháp:</strong> Khai báo
+                        tham số
+                        <code class="highlight" style="font-size: 1.25rem;">check</code> và <code class="highlight" style="font-size: 1.25rem;">option httpchk</code> trong khối backend.
+                    </p>
+</div>
+<!-- Item 4 -->
+<div class="box" style="padding: 12px 18px; border-left: 4px solid var(--accent);">
+<h3 style="margin: 0 0 4px 0; font-size: 1.5rem; color: #fff;">4. Bỏ qua trang giám sát (Stats &amp;
+                        Syslog)
+                    </h3>
+<p style="font-size: 1.35rem; margin: 0 0 4px 0; line-height: 1.45;"><strong>Hậu quả:</strong> Không
+                        kịp thời
+                        phát hiện máy chủ bị nghẽn (bottleneck) hoặc quá tải hệ thống.</p>
+<p style="font-size: 1.35rem; margin: 0; line-height: 1.45;"><strong>Giải pháp:</strong> Kích hoạt
+                        khối <code class="highlight" style="font-size: 1.25rem;">listen stats</code> (Port 8404) và theo
+                        dõi log hệ thống
+                        định kỳ.</p>
+</div>
+</div>
+</div>
+<div class="slide transition-slide demo-slide">
+<div class="transition-label">Mục 6</div>
+<h2>Video Demo, Kết luận &amp; Tài liệu tham khảo</h2>
+<p>Minh họa quá trình thực hành, tổng kết điểm ghi nhớ và danh mục tài liệu tham khảo.</p>
+</div>
+<div class="slide">
+<h2><i class="fa-solid fa-book"></i> References (Tài liệu tham khảo)</h2>
+<p class="slide-subtitle">Nguồn tham khảo sử dụng trong quá trình chuẩn bị nội dung seminar.</p>
+<div class="references-list">
+<div class="reference-item">
+<strong>HAProxy Documentation - Starter Guide &amp; Intro</strong>
+<a href="https://docs.haproxy.org/3.3/intro.html" target="_blank">https://docs.haproxy.org/3.3/intro.html</a>
+</div>
+<div class="reference-item">
+<strong>Viblo - Tìm hiểu về Load Balancing server với HAProxy</strong>
+<a href="https://viblo.asia/p/tim-hieu-ve-load-balancing-server-voi-haproxy-ByEZkoDxZQ0" target="_blank">https://viblo.asia/p/tim-hieu-ve-load-balancing-server-voi-haproxy-ByEZkoDxZQ0</a>
+</div>
+<div class="reference-item">
+<strong>Viblo - Hướng dẫn sử dụng HAProxy cho load balancing ứng dụng</strong>
+<a href="https://viblo.asia/p/huong-dan-su-dung-haproxy-cho-load-balancing-ung-dung-4P856jp95Y3">https://viblo.asia/p/huong-dan-su-dung-haproxy-cho-load-balancing-ung-dung-4P856jp95Y3</a>
+</div>
+<div class="reference-item">
+<strong>Vietnam Lab - Phân tải hệ thống web sử dụng HAProxy</strong>
+<a href="https://blog.vietnamlab.vn/phan-tai-he-thong-web-su-dung-haproxy/">https://blog.vietnamlab.vn/phan-tai-he-thong-web-su-dung-haproxy/</a>
+</div>
+<div class="reference-item">
+<strong>HAProxy Technologies - The Four Essential Sections of an HAProxy Configuration</strong>
+<a href="https://www.haproxy.com/blog/the-four-essential-sections-of-an-haproxy-configuration">https://www.haproxy.com/blog/the-four-essential-sections-of-an-haproxy-configuration</a>
+</div>
+<div class="reference-item">
+<strong>Vietnix - HAProxy là gì?</strong>
+<a href="https://vietnix.vn/haproxy-la-gi/?utm_source=ggads&amp;utm_medium=pmax&amp;p=&amp;gad_source=1&amp;gad_campaignid=23376051822&amp;gbraid=0AAAAABwedNJx8yC1KwyO7V3vTVLbEclgl&amp;gclid=CjwKCAjwu53SBhAhEiwAJzSLNuM7XTc2cZ6Odw70V-gOnrYzFwua2BDYW30QUuUSM3mxYUS7jvq80hoCzyUQAvD_BwE">https://vietnix.vn/haproxy-la-gi/</a>
+</div>
+</div>
+<p class="reference-note">Accessed: July 23, 2026.</p>
+</div>
+<div class="slide transition-slide thank-slide">
+<div class="transition-label">Kết thúc</div>
+<h2>Cảm ơn mọi người đã lắng nghe bài seminar</h2>
+</div>
+<div class="footer">
+<div class="controls">
+<button id="prevBtn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i> Trước</button>
+<button id="nextBtn" onclick="nextSlide()">Tiếp <i class="fa-solid fa-arrow-right"></i></button>
+<button id="fullscreenBtn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i> Toàn màn
+                    hình</button>
+</div>
+<div class="slide-counter" id="slide-counter">Slide 1 / 1</div>
+</div>
+</div>
+<script>
+        let currentSlide = 0;
+        const slides = Array.from(document.querySelectorAll('.presentation-container > .slide'));
+        const counter = document.getElementById('slide-counter');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        function updateUI() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+                slide.setAttribute('data-page', `${index + 1} / ${slides.length}`);
+            });
+            counter.innerText = `Slide ${currentSlide + 1} / ${slides.length}`;
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+            const hash = `slide-${currentSlide + 1}`;
+            if (location.hash !== `#${hash}`) history.replaceState(null, '', `#${hash}`);
+        }
+        function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; updateUI(); } }
+        function prevSlide() { if (currentSlide > 0) { currentSlide--; updateUI(); } }
+        function toggleFullscreen() {
+            const root = document.querySelector('.presentation-container');
+            if (!document.fullscreenElement && root.requestFullscreen) root.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+        }
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight' || event.key === ' ') { event.preventDefault(); nextSlide(); }
+            if (event.key === 'ArrowLeft') { event.preventDefault(); prevSlide(); }
+            if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen(); }
+        });
+        window.addEventListener('hashchange', () => {
+            const match = location.hash.match(/^#slide-(\d+)$/);
+            if (!match) return;
+            const index = Number(match[1]) - 1;
+            if (index >= 0 && index < slides.length) {
+                currentSlide = index;
+                updateUI();
+            }
+        });
+        const initialMatch = location.hash.match(/^#slide-(\d+)$/);
+        if (initialMatch) {
+            const index = Number(initialMatch[1]) - 1;
+            if (index >= 0 && index < slides.length) currentSlide = index;
+        }
+        updateUI();
+    </script>
+</body>
+</html>

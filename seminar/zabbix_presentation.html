@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zabbix — Enterprise Host & Network Monitoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  :root{
+    --white:#FFFFFF;
+    --paper:#FCFBF9;
+    --ink:#161513;
+    --muted:#726E68;
+    --red:#C8102E;
+    --red-deep:#7A0A1D;
+    --red-tint:#FBEAEC;
+    --line:#E7E3DD;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Archivo', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--ink);}
+  body{
+    font-family:var(--body);
+    color:var(--ink);
+    overflow:hidden;
+  }
+  .deck{
+    position:relative;
+    width:100vw;
+    height:100vh;
+  }
+  .slide{
+    position:absolute;
+    inset:0;
+    display:none;
+    flex-direction:column;
+    background:var(--white);
+    padding:64px 88px 56px;
+    opacity:0;
+    transform:translateX(24px);
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  .slide.active{
+    display:flex;
+    opacity:1;
+    transform:translateX(0);
+  }
+  .slide.paper{background:var(--paper);}
+
+  /* Header */
+  .kicker{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--red);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .kicker::before{
+    content:"";
+    width:22px;height:2px;background:var(--red);display:inline-block;
+  }
+  h1.slide-title{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:44px;
+    line-height:1.08;
+    margin:0 0 8px;
+    letter-spacing:-.01em;
+  }
+  h1.slide-title span{color:var(--red);}
+  .subtitle{
+    font-family:var(--body);
+    font-size:17px;
+    color:var(--muted);
+    margin:0 0 28px;
+    max-width:720px;
+  }
+  .rule{
+    height:1px;background:var(--line); margin:0 0 28px;
+  }
+
+  /* Title slide */
+  .slide.title-slide{
+    justify-content:center;
+    align-items:flex-start;
+    background:var(--ink);
+    color:var(--white);
+    padding:0 100px;
+  }
+  .title-slide .brandmark{
+    display:flex;align-items:center;gap:14px;margin-bottom:40px;
+  }
+  .title-slide .brandmark .sq{
+    width:34px;height:34px;background:var(--red);
+  }
+  .title-slide .brandmark span{
+    font-family:var(--mono);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#B8B3AA;
+  }
+  .title-slide h1{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:96px;
+    line-height:.92;
+    margin:0;
+    letter-spacing:-.02em;
+  }
+  .title-slide h1 em{
+    font-style:normal;color:var(--red);
+  }
+  .title-slide h2{
+    font-family:var(--body);
+    font-weight:500;
+    font-size:24px;
+    color:#D8D4CC;
+    margin:22px 0 0;
+    max-width:620px;
+  }
+  .title-slide .meta{
+    margin-top:64px;
+    display:flex;
+    gap:56px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:#8A857C;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+  }
+  .title-slide .meta b{color:#E5E1D8;display:block;font-family:var(--body);font-size:15px;font-weight:600;text-transform:none;letter-spacing:0;margin-top:4px;}
+
+  /* Body content area */
+  .content{flex:1; overflow:hidden; display:flex; flex-direction:column;}
+
+  /* Agenda */
+  .agenda-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+  .agenda-list li{
+    display:flex;align-items:baseline;gap:26px;
+    padding:16px 0;border-bottom:1px solid var(--line);
+    font-family:var(--display);font-size:22px;font-weight:600;
+  }
+  .agenda-list li:first-child{border-top:1px solid var(--line);}
+  .agenda-list .num{
+    font-family:var(--mono);color:var(--red);font-size:15px;width:34px;flex:none;
+  }
+
+  /* Generic two-col */
+  .cols{display:flex;gap:56px;flex:1;align-items:flex-start;}
+  .col{flex:1;min-width:0;}
+  .lead-num{
+    font-family:var(--display);font-weight:800;font-size:120px;color:var(--red-tint);
+    line-height:.8;margin-bottom:-6px;
+  }
+  ul.plain{margin:0;padding:0;list-style:none;}
+  ul.plain li{
+    position:relative;padding-left:22px;margin-bottom:14px;
+    font-size:17px;line-height:1.55;color:var(--ink);
+  }
+  ul.plain li::before{
+    content:"";position:absolute;left:0;top:9px;width:8px;height:8px;background:var(--red);
+  }
+  .callout{
+    margin-top:24px;
+    border-left:3px solid var(--red);
+    padding:14px 22px;
+    background:var(--red-tint);
+    font-family:var(--body);
+    font-size:17px;
+    font-weight:600;
+  }
+
+  /* Table */
+  table.data{
+    width:100%;border-collapse:collapse;font-size:16px;
+  }
+  table.data th{
+    text-align:left;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);border-bottom:2px solid var(--ink);padding:10px 16px 10px 0;
+  }
+  table.data td{
+    padding:16px 16px 16px 0;border-bottom:1px solid var(--line);vertical-align:top;
+  }
+  table.data tr td:first-child{
+    font-family:var(--display);font-weight:700;color:var(--red-deep);white-space:nowrap;
+  }
+
+  /* Diagram frame */
+  /*.diagram-frame{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    background:var(--paper);border:1px solid var(--line);
+    padding:20px;overflow:hidden;
+  }
+  .diagram-frame .mermaid{width:100%;text-align:center;}
+  .diagram-note{
+    display:flex;gap:28px;margin-top:18px;justify-content:center;
+    font-family:var(--mono);font-size:13px;color:var(--muted);
+  }
+  .diagram-note b{color:var(--red-deep);}*/
+  .diagram-frame{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    background:var(--paper);border:1px solid var(--line);
+    padding:20px;overflow:auto; /* Đổi từ hidden sang auto để cho phép cuộn nếu cần */
+    min-height: 0; /* Quan trọng: Giúp flexbox không bị ép tràn kích thước */
+  }
+  .diagram-frame .mermaid{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  /* Ép SVG của Mermaid luôn nằm gọn trong khung hình */
+  .diagram-frame .mermaid svg {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  /* Code */
+  .code-block{
+    background:var(--ink);color:#F1EFE9;
+    font-family:var(--mono);font-size:15px;line-height:1.7;
+    padding:20px 24px;margin:0 0 16px;
+    border-left:3px solid var(--red);
+    overflow-x:auto;
+    white-space:pre;
+  }
+  .code-block .cmt{color:#8B8681;}
+
+  /* Steps */
+  .steps{list-style:none;margin:0;padding:0;counter-reset:step;}
+  .steps li{
+    counter-increment:step;
+    display:flex;gap:18px;align-items:flex-start;
+    padding:13px 0;border-bottom:1px solid var(--line);
+  }
+  .steps li:before{
+    content:counter(step,decimal-leading-zero);
+    font-family:var(--mono);font-size:13px;color:var(--red);flex:none;padding-top:2px;
+  }
+  .steps li span{font-size:16.5px;}
+
+  /* Compare */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);flex:1;}
+  .compare .side{padding:26px 30px;}
+  .compare .side.zbx{background:var(--red-tint);border-right:1px solid var(--line);}
+  .compare .side h3{
+    font-family:var(--display);font-size:18px;margin:0 0 16px;
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  .compare .side.zbx h3{color:var(--red-deep);}
+  .compare .side ul{margin:0;padding:0;list-style:none;}
+  .compare .side li{
+    font-size:15.5px;padding:8px 0;border-bottom:1px dashed var(--line);
+  }
+
+  /* Footer */
+  .slide-footer{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:20px;padding-top:14px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;
+  }
+  .title-slide .slide-footer{display:none;}
+
+  /* Nav chrome */
+  .progress-bar{
+    position:fixed;top:0;left:0;height:3px;background:var(--red);z-index:50;
+    transition:width .3s ease;
+  }
+  .nav{
+    position:fixed;bottom:26px;right:40px;z-index:50;
+    display:flex;align-items:center;gap:14px;
+    font-family:var(--mono);font-size:12px;color:var(--muted);
+  }
+  .nav button{
+    width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
+    background:var(--white);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;color:var(--ink);
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .nav button:hover{background:var(--red);color:var(--white);border-color:var(--red);}
+  .nav button:disabled{opacity:.3;cursor:default;}
+  .nav button:disabled:hover{background:var(--white);color:var(--ink);border-color:var(--line);}
+  .count{min-width:56px;text-align:center;}
+  .nav-hint{
+    position:fixed;bottom:26px;left:40px;z-index:50;
+    font-family:var(--mono);font-size:11.5px;color:#B4AFA6;
+    letter-spacing:.05em;
+  }
+  .title-slide ~ .nav-hint{}
+  @media (max-width:900px){
+    .slide{padding:40px 30px 70px;}
+    h1.slide-title{font-size:30px;}
+    .title-slide h1{font-size:52px;}
+    .cols{flex-direction:column;gap:24px;}
+    .compare{grid-template-columns:1fr;}
+    .nav-hint{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" style="width:0%"></div>
+<div class="deck" id="deck">
+
+  <!-- 1: TITLE -->
+  <section class="slide title-slide active">
+    <div class="brandmark"><span class="sq"></span><span>Linux Seminar &middot; Group XX</span></div>
+    <h1>Zabbix<br><em>Enterprise</em> Monitoring</h1>
+    <h2>Host &amp; network monitoring, from raw metrics to actionable alerts.</h2>
+    <div class="meta">
+      <div>Presented by<b>Group XX — Member names &amp; IDs</b></div>
+      <div>Format<b>Live demo included</b></div>
+    </div>
+  </section>
+
+  <!-- 2: AGENDA -->
+  <section class="slide">
+    <div class="kicker">Roadmap</div>
+    <h1 class="slide-title">Agenda</h1>
+    <p class="subtitle">Seven stops from the problem statement to a working alert.</p>
+    <div class="content">
+      <ul class="agenda-list">
+        <li><span class="num">01</span>What problem Zabbix solves</li>
+        <li><span class="num">02</span>Core concepts and terminology</li>
+        <li><span class="num">03</span>How Zabbix works</li>
+        <li><span class="num">04</span>Installation and basic configuration</li>
+        <li><span class="num">05</span>Demo: discovery, nginx dashboard, CPU alert</li>
+        <li><span class="num">06</span>When to use Zabbix + comparison</li>
+        <li><span class="num">07</span>Common mistakes and takeaways</li>
+      </ul>
+    </div>
+    <div class="slide-footer"><span>Zabbix &middot; Linux Seminar</span><span>02 / 24</span></div>
+  </section>
+
+  <!-- 3: THE PROBLEM -->
+  <section class="slide paper">
+    <div class="kicker">01 — Motivation</div>
+    <h1 class="slide-title">The Problem</h1>
+    <p class="subtitle">Modern Linux systems run many services — and they don't announce failure politely.</p>
+    <div class="content cols">
+      <div class="col">
+        <ul class="plain">
+          <li>Servers, databases, web apps, network devices — all running in parallel</li>
+          <li>CPU, memory, disk, network, and processes drift silently over time</li>
+          <li>Failures often happen before a single user reports them</li>
+        </ul>
+        <div class="callout">Question: how does an admin know something is wrong — before the user does?</div>
+      </div>
+      <div class="col">
+        <div class="lead-num">?</div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>The Problem</span><span>03 / 24</span></div>
+  </section>
+
+  <!-- 4: WHAT IS ZABBIX -->
+  <section class="slide">
+    <div class="kicker">01 — Motivation</div>
+    <h1 class="slide-title">What is <span>Zabbix</span>?</h1>
+    <p class="subtitle">An open-source monitoring and alerting platform.</p>
+    <div class="content">
+      <ul class="plain" style="font-size:19px;">
+        <li>Collects metrics from hosts and services</li>
+        <li>Stores historical performance data</li>
+        <li>Displays dashboards and graphs</li>
+        <li>Raises problems when thresholds are crossed</li>
+        <li>Notifies people when something breaks</li>
+      </ul>
+    </div>
+    <div class="slide-footer"><span>What is Zabbix?</span><span>04 / 24</span></div>
+  </section>
+
+  <!-- 5: CORE TERMS -->
+  <section class="slide paper">
+    <div class="kicker">02 — Terminology</div>
+    <h1 class="slide-title">Core Terms</h1>
+    <p class="subtitle">The vocabulary that everything else is built from.</p>
+    <div class="content">
+      <table class="data">
+        <tr><th>Term</th><th>Meaning</th></tr>
+        <tr><td>Zabbix Server</td><td>The central component that collects metrics from agents, evaluates triggers, stores data, and manages configuration</td></tr>
+        <tr><td>Agent</td><td>Lightweight software installed on monitored hosts that collects local system metrics and sends them to the server</td></tr>
+        <tr><td>Frontend</td><td>Web-based GUI for viewing dashboards, graphs, managing configuration, and accessing alerts</td></tr>
+        <tr><td>Item</td><td>A single metric or data point that Zabbix collects, e.g. CPU usage, memory, disk space, or process count</td></tr>
+        <tr><td>Trigger</td><td>A condition (threshold rule) that fires when an item's value crosses a boundary — transforms raw metrics into problems</td></tr>
+        <tr><td>Problem</td><td>A visible alert in the frontend created when a trigger fires; shown in dashboards and sent to users</td></tr>
+        <tr><td>Template</td><td>Reusable collection of items, triggers, graphs, and discovery rules that can be applied to multiple hosts</td></tr>
+      </table>
+    </div>
+    <div class="slide-footer"><span>Core Terms</span><span>05 / 24</span></div>
+  </section>
+
+  <!-- 6: ARCHITECTURE -->
+  <section class="slide">
+    <div class="kicker">03 — How Zabbix Works</div>
+    <h1 class="slide-title">Zabbix Architecture</h1>
+    <p class="subtitle">Server, database, frontend, and the agent living on each host.</p>
+    <div class="content">
+      <div class="diagram-frame">
+        <div class="mermaid">
+flowchart LR
+    subgraph H[Monitored Linux Host]
+        OS[CPU / RAM / Disk / nginx]
+        A[Zabbix Agent 2]
+        OS --> A
+    end
+    subgraph Z[Zabbix Platform]
+        S[Zabbix Server]
+        DB[(Database)]
+        F[Web Frontend]
+        S --> DB
+        F --> DB
+    end
+    U[Administrator] --> F
+    S <-->|metrics| A
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Zabbix Architecture</span><span>06 / 24</span></div>
+  </section>
+
+  <!-- 7: ITEM -> TRIGGER -> PROBLEM -->
+  <section class="slide paper">
+    <div class="kicker">03 — How Zabbix Works</div>
+    <h1 class="slide-title">How Monitoring Becomes an Alert</h1>
+    <p class="subtitle">A resource turns into a value, a value is checked, a check becomes a problem.</p>
+    <div class="content">
+      <div class="diagram-frame">
+        <div class="mermaid">
+flowchart LR
+    R["Host resource<br/>CPU usage"] --> A[Agent]
+    A --> I["Item<br/>CPU utilization"]
+    I --> H[(History)]
+    I --> T{"Trigger<br/>CPU > 80% for 30s?"}
+    T -->|No| OK[OK]
+    T -->|Yes| P[PROBLEM]
+    P --> D[Dashboard]
+        </div>
+      </div>
+      <div class="diagram-note">
+        <span><b>Item</b> = collected value</span>
+        <span><b>Trigger</b> = rule</span>
+        <span><b>Problem</b> = visible alert</span>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Item &rarr; Trigger &rarr; Problem</span><span>07 / 24</span></div>
+  </section>
+
+  <!-- 8: PASSIVE VS ACTIVE -->
+  <section class="slide">
+    <div class="kicker">03 — How Zabbix Works</div>
+    <h1 class="slide-title">Passive vs Active Checks</h1>
+    <p class="subtitle">Two ways the server and agent exchange data.</p>
+    <div class="content">
+      <div class="diagram-frame">
+        <div class="mermaid">
+flowchart LR
+    subgraph P[Passive check]
+        direction LR
+        S1[Server] -->|requests value| A1[Agent]
+        A1 -->|returns value| S1
+    end
+    subgraph A[Active check]
+        direction LR
+        A2[Agent] -->|requests check list| S2[Server]
+        S2 -->|sends item list| A2
+        A2 -->|sends values later| S2
+    end
+        </div>
+      </div>
+      <div class="diagram-note"><span>A single Zabbix agent can support <b>both modes</b> at once.</span></div>
+    </div>
+    <div class="slide-footer"><span>Passive vs Active Checks</span><span>08 / 24</span></div>
+  </section>
+
+  <!-- 9: DISCOVERY TYPES -->
+  <section class="slide paper">
+    <div class="kicker">03 — How Zabbix Works</div>
+    <h1 class="slide-title">Discovery Types</h1>
+    <p class="subtitle">Three ways Zabbix finds things to monitor.</p>
+    <div class="content">
+      <table class="data">
+        <tr><th>Feature</th><th>What it discovers</th></tr>
+        <tr><td>Network discovery</td><td>Hosts/services in an IP range</td></tr>
+        <tr><td>Autoregistration</td><td>Active agents that announce themselves</td></tr>
+        <tr><td>Low-level discovery (LLD)</td><td>Things inside a host: filesystems, interfaces, nginx processes, etc.</td></tr>
+      </table>
+      <div class="callout">Network discovery finds the host. LLD creates items/triggers inside templates.</div>
+    </div>
+    <div class="slide-footer"><span>Discovery Types</span><span>09 / 24</span></div>
+  </section>
+
+  <!-- 10: DEMO TOPOLOGY -->
+  <section class="slide">
+    <div class="kicker">04 — Demo</div>
+    <h1 class="slide-title">Demo Topology</h1>
+    <p class="subtitle">Two virtual machines: the Zabbix server and a monitored web server.</p>
+    <div class="content">
+      <div class="diagram-frame">
+        <div class="mermaid">
+flowchart LR
+    B[Browser]
+    subgraph VM1[VM 1: Zabbix server]
+        F["Frontend :8080"]
+        S["Zabbix Server :10051"]
+        DB[(PostgreSQL)]
+        F --> DB
+        S --> DB
+    end
+    subgraph VM2[VM 2: monitored web server]
+        A["Zabbix Agent 2 :10050"]
+        N["nginx :80"]
+        ST["stub_status<br/>/basic_status"]
+        N --> ST
+        A --> ST
+    end
+    B --> F
+    S -->|discovery + passive checks| A
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Demo Topology</span><span>10 / 24</span></div>
+  </section>
+
+  <!-- 11: INSTALLATION -->
+  <section class="slide paper">
+    <div class="kicker">04 — Demo</div>
+    <h1 class="slide-title">Installation Overview</h1>
+    <p class="subtitle">What runs on each virtual machine before the demo starts.</p>
+    <div class="content cols">
+      <div class="col">
+        <div class="lead-num" style="font-size:64px;color:var(--red-deep);opacity:.15;margin-bottom:10px;">VM 1</div>
+        <h3 style="font-family:var(--display);margin:0 0 14px;">Zabbix server</h3>
+        <ul class="plain">
+          <li>Run Zabbix server</li>
+          <li>Run database</li>
+          <li>Run web frontend</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="lead-num" style="font-size:64px;color:var(--red-deep);opacity:.15;margin-bottom:10px;">VM 2</div>
+        <h3 style="font-family:var(--display);margin:0 0 14px;">Monitored Linux host</h3>
+        <ul class="plain">
+          <li>Install <code>zabbix-agent2</code></li>
+          <li>Install <code>nginx</code></li>
+          <li>Enable nginx <code>stub_status</code></li>
+          <li>Allow the Zabbix server to connect to the agent</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Installation Overview</span><span>11 / 24</span></div>
+  </section>
+
+  <!-- 12: DISCOVERY DEMO -->
+  <section class="slide">
+    <div class="kicker">04 — Demo</div>
+    <h1 class="slide-title">Discovery Demo</h1>
+    <p class="subtitle">From a network scan to a fully templated, monitored host.</p>
+    <div class="content">
+      <div class="diagram-frame">
+        <div class="mermaid">
+flowchart LR
+    R["Network discovery rule<br/>scan demo IP"] --> C["Check agent<br/>system.uname"]
+    C --> E[Discovery event]
+    E --> A[Discovery action]
+    A --> H[Create host]
+    A --> G["Add to Linux servers"]
+    A --> T[Link templates]
+    T --> M[Monitoring starts]
+        </div>
+      </div>
+      <div class="diagram-note">
+        <span>Demo action links: <b>Linux by Zabbix agent</b></span>
+        <span><b>Nginx by Zabbix agent</b></span>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Discovery Demo</span><span>12 / 24</span></div>
+  </section>
+
+  <!-- 13: NGINX DASHBOARD -->
+  <section class="slide paper">
+    <div class="kicker">04 — Demo</div>
+    <h1 class="slide-title">nginx Dashboard Demo</h1>
+    <p class="subtitle">Create a dashboard named <b>nginx Demo</b>.</p>
+    <div class="content">
+      <table class="data">
+        <tr><th>Widget</th><th>Item</th></tr>
+        <tr><td>Item value</td><td>nginx active connections</td></tr>
+        <tr><td>Item value</td><td>nginx requests per second</td></tr>
+        <tr><td>Graph</td><td>active / reading / writing / waiting connections</td></tr>
+        <tr><td>Graph</td><td>request rate over time</td></tr>
+        <tr><td>Problems</td><td>current problems for demo host</td></tr>
+      </table>
+    </div>
+    <div class="slide-footer"><span>nginx Dashboard Demo</span><span>13 / 24</span></div>
+  </section>
+
+  <!-- 14: GENERATE TRAFFIC -->
+  <section class="slide">
+    <div class="kicker">04 — Demo</div>
+    <h1 class="slide-title">Generate nginx Traffic</h1>
+    <p class="subtitle">Run load against nginx and watch the dashboard react in real time.</p>
+    <div class="content">
+      <pre class="code-block">wrk -t2 -c50 -d60s http://192.168.56.11/</pre>
+      <pre class="code-block"><span class="cmt"># or</span>
+ab -n 10000 -c 20 http://192.168.56.11/</pre>
+      <ul class="plain" style="margin-top:8px;">
+        <li>Request rate increases</li>
+        <li>Active connections increase</li>
+        <li>Graph changes in real time</li>
+        <li>Values fall when traffic stops</li>
+      </ul>
+    </div>
+    <div class="slide-footer"><span>Generate nginx Traffic</span><span>14 / 24</span></div>
+  </section>
+
+  <!-- 15: TRIGGER DEMO CPU -->
+  <section class="slide paper">
+    <div class="kicker">04 — Demo</div>
+    <h1 class="slide-title">Trigger Demo: High CPU</h1>
+    <p class="subtitle">Use CPU stress for a predictable <b>PROBLEM</b> event.</p>
+    <div class="content">
+      <div class="kicker" style="margin-bottom:8px;">Trigger expression</div>
+      <pre class="code-block">min(/linux-client/system.cpu.util,30s)&gt;80</pre>
+      <div class="kicker" style="margin-bottom:8px;">Generate load</div>
+      <pre class="code-block">stress-ng --cpu "$(nproc)" --cpu-load 100 --timeout 90s</pre>
+      <div class="callout">Why CPU instead of stopping nginx? Stable item, simple trigger, reliable alert — and nginx's LLD-based process triggers can be disabled by design.</div>
+    </div>
+    <div class="slide-footer"><span>Trigger Demo: High CPU</span><span>15 / 24</span></div>
+  </section>
+
+  <!-- 16: CPU PROBLEM FLOW -->
+<section class="slide">
+  <div class="kicker">04 — Demo</div>
+  <h1 class="slide-title">CPU Problem Flow</h1>
+  <p class="subtitle">From stress test to a resolved problem, step by step.</p>
+  <div class="content">
+    <div class="diagram-frame">
+      <div class="mermaid">
+sequenceDiagram
+    participant P as Presenter
+    participant H as Linux Host
+    participant A as Zabbix Agent
+    participant Z as Zabbix Server
+    participant UI as Problems Dashboard
+    P->>H: run stress-ng
+    A->>H: read CPU utilization
+    A-->>Z: CPU > 80%
+    Z->>Z: trigger expression becomes true
+    Z->>UI: show PROBLEM
+    H->>H: stress-ng timeout ends
+    A-->>Z: CPU normal
+    Z->>UI: resolve problem
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>CPU Problem Flow</span><span>16 / 24</span></div>
+</section>
+
+  <!-- 17: DEMO SCRIPT -->
+  <section class="slide paper">
+    <div class="kicker">04 — Demo</div>
+    <h1 class="slide-title">Demo Script</h1>
+    <p class="subtitle">Five to eight minutes, start to finish.</p>
+    <div class="content">
+      <ol class="steps">
+        <li><span>Show the two-VM setup</span></li>
+        <li><span>Show discovery rule and discovery action</span></li>
+        <li><span>Start/show the monitored host being discovered</span></li>
+        <li><span>Show templates linked automatically</span></li>
+        <li><span>Open nginx dashboard</span></li>
+        <li><span>Generate nginx traffic and show graphs change</span></li>
+        <li><span>Run CPU stress</span></li>
+        <li><span>Show PROBLEM appears, then resolves</span></li>
+      </ol>
+    </div>
+    <div class="slide-footer"><span>Demo Script</span><span>17 / 24</span></div>
+  </section>
+
+  <!-- 18: WHEN TO USE -->
+  <section class="slide">
+    <div class="kicker">05 — Positioning</div>
+    <h1 class="slide-title">When to Use Zabbix</h1>
+    <p class="subtitle">Use Zabbix when you want:</p>
+    <div class="content">
+      <ul class="plain" style="font-size:19px;">
+        <li>One platform for monitoring + alerting + dashboards</li>
+        <li>Linux/Windows/server monitoring</li>
+        <li>Network device monitoring with SNMP</li>
+        <li>Templates for common services</li>
+        <li>Historical data and problem tracking</li>
+        <li>A traditional infrastructure monitoring tool</li>
+      </ul>
+    </div>
+    <div class="slide-footer"><span>When to Use Zabbix</span><span>18 / 24</span></div>
+  </section>
+
+  <!-- 19: COMPARISON -->
+  <section class="slide paper">
+    <div class="kicker">05 — Positioning</div>
+    <h1 class="slide-title">Alternative: Prometheus + Grafana</h1>
+    <p class="subtitle">Two philosophies for the same underlying job.</p>
+    <div class="content compare">
+      <div class="side zbx">
+        <h3>Zabbix</h3>
+        <ul>
+          <li>All-in-one monitoring platform</li>
+          <li>Strong host/service templates</li>
+          <li>GUI-heavy configuration</li>
+          <li>Good for classic infrastructure</li>
+          <li>Built-in problems/actions</li>
+        </ul>
+      </div>
+      <div class="side">
+        <h3>Prometheus + Grafana</h3>
+        <ul>
+          <li>Metrics database + dashboard stack</li>
+          <li>Strong cloud-native metrics model</li>
+          <li>Config/query-heavy workflow</li>
+          <li>Good for Kubernetes/app metrics</li>
+          <li>Alertmanager is separate</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Zabbix vs Prometheus+Grafana</span><span>19 / 24</span></div>
+  </section>
+
+  <!-- 20: COMMON MISTAKES -->
+  <section class="slide">
+    <div class="kicker">06 — Wrap-up</div>
+    <h1 class="slide-title">Common Mistakes</h1>
+    <p class="subtitle">Three easy ways to trip up during setup or demo.</p>
+    <div class="content">
+      <ol class="steps">
+        <li><span><b>Confusing network discovery with LLD</b> — network discovery finds hosts; LLD discovers entities inside hosts/templates.</span></li>
+        <li><span><b>Using slow trigger windows in a short demo</b> — use short intervals for classroom demonstration.</span></li>
+        <li><span><b>Stopping the wrong thing</b> — stopping the agent proves host unreachable; CPU stress proves threshold-based alerting; nginx dashboard proves service metrics.</span></li>
+      </ol>
+    </div>
+    <div class="slide-footer"><span>Common Mistakes</span><span>20 / 24</span></div>
+  </section>
+
+  <!-- 21: KEY TAKEAWAYS -->
+  <section class="slide paper">
+    <div class="kicker">06 — Wrap-up</div>
+    <h1 class="slide-title">Key Takeaways</h1>
+    <div class="content">
+      <ul class="plain" style="font-size:19px;">
+        <li>Zabbix collects metrics using agents, templates and items.</li>
+        <li>Triggers turn metric values into visible problems.</li>
+        <li>Network discovery can automatically add hosts and link templates.</li>
+        <li>Dashboards make metrics understandable.</li>
+        <li>For this demo: nginx shows monitoring, CPU stress shows alerting.</li>
+      </ul>
+    </div>
+    <div class="slide-footer"><span>Key Takeaways</span><span>21 / 24</span></div>
+  </section>
+
+  <!-- 22: REFERENCES -->
+  <section class="slide">
+    <div class="kicker">Appendix</div>
+    <h1 class="slide-title">References</h1>
+    <div class="content">
+      <ul class="plain">
+        <li>Seminar requirements document</li>
+        <li>Zabbix documentation: Agent, passive and active checks - </span><a href="https://www.zabbix.com/documentation/current/en/manual/concepts/agent" target="_blank">https://www.zabbix.com/documentation/current/en/manual/concepts/agent</a></li>
+        <li>Zabbix documentation: Network discovery - <a href="https://www.zabbix.com/documentation/current/en/manual/discovery/network_discovery" target="_blank">https://www.zabbix.com/documentation/current/en/manual/discovery/network_discovery</a></li>
+        <li>Zabbix documentation: Network discovery rule example - <a href="https://www.zabbix.com/documentation/current/en/manual/discovery/network_discovery/rule" target="_blank">https://www.zabbix.com/documentation/current/en/manual/discovery/network_discovery/rule</a></li>
+        <li>Zabbix documentation: Dashboard widgets - <a href="https://www.zabbix.com/documentation/current/en/manual/web_interface/frontend_sections/dashboards/widgets" target="_blank">https://www.zabbix.com/documentation/current/en/manual/web_interface/frontend_sections/dashboards/widgets</a></li>
+        <li>Zabbix nginx integration - <a href="https://www.zabbix.com/integrations/nginx" target="_blank">https://www.zabbix.com/integrations/nginx</a></li>
+        <li>nginx documentation - <a href="https://nginx.org/" target="_blank">https://nginx.org/</a></li>
+      </ul>
+    </div>
+    <div class="slide-footer"><span>References</span><span>22 / 24</span></div>
+  </section>
+
+  <!-- 23: BACKUP COMMANDS -->
+  <section class="slide paper">
+    <div class="kicker">Backup Slide</div>
+    <h1 class="slide-title">Commands</h1>
+    <div class="content">
+      <pre class="code-block"><span class="cmt"># start services</span>
+sudo systemctl start zabbix-agent2
+sudo systemctl start nginx
+
+<span class="cmt"># check nginx status endpoint</span>
+curl http://127.0.0.1/basic_status
+
+<span class="cmt"># generate HTTP traffic</span>
+wrk -t2 -c50 -d60s http://192.168.56.11/
+
+<span class="cmt"># generate CPU load</span>
+stress-ng --cpu "$(nproc)" --cpu-load 100 --timeout 90s</pre>
+    </div>
+    <div class="slide-footer"><span>Backup: Commands</span><span>23 / 24</span></div>
+  </section>
+
+  <!-- 24: BACKUP QA -->
+  <section class="slide">
+    <div class="kicker">Backup Slide</div>
+    <h1 class="slide-title">Q&amp;A</h1>
+    <div class="content">
+      <div class="callout" style="margin-top:0;">Q: Is active check the same as push?<br><span style="font-weight:400;">Mostly — active agents first request their check list from the server, then send collected values later.</span></div>
+      <div class="callout">Q: Is network discovery the same as LLD?<br><span style="font-weight:400;">No. Network discovery finds hosts. LLD discovers entities inside a host/template.</span></div>
+      <div class="callout">Q: Why use CPU stress for alerting?<br><span style="font-weight:400;">It is deterministic and easy to recover from during a short demo.</span></div>
+    </div>
+    <div class="slide-footer"><span>Backup: Q&amp;A</span><span>24 / 24</span></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prevBtn" aria-label="Previous slide">&larr;</button>
+  <span class="count" id="countLabel">01 / 24</span>
+  <button id="nextBtn" aria-label="Next slide">&rarr;</button>
+</div>
+<div class="nav-hint">Use &larr; &rarr; or space to navigate</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad:false,
+    theme:'base',
+    themeVariables:{
+      primaryColor:'#FBEAEC',
+      primaryBorderColor:'#C8102E',
+      primaryTextColor:'#161513',
+      lineColor:'#C8102E',
+      secondaryColor:'#FCFBF9',
+      tertiaryColor:'#FFFFFF',
+      fontFamily:'Inter, sans-serif',
+      fontSize:'15px',
+      textColor:'#161513',
+      actorBkg:'#FBEAEC',
+      actorBorder:'#C8102E',
+      actorTextColor:'#161513',
+      signalColor:'#161513',
+      signalTextColor:'#161513',
+      labelBoxBkgColor:'#FBEAEC',
+      labelBoxBorderColor:'#C8102E',
+      noteBkgColor:'#FCFBF9',
+      noteBorderColor:'#E7E3DD'
+    },
+    flowchart:{curve:'basis'},
+    securityLevel:'loose'
+  });
+
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+  const rendered = new Set();
+
+  const progressBar = document.getElementById('progressBar');
+  const countLabel = document.getElementById('countLabel');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  function pad(n){ return n.toString().padStart(2,'0'); }
+
+  async function renderMermaidIn(slide){
+    const els = slide.querySelectorAll('.mermaid');
+    for(const el of els){
+      if(el.getAttribute('data-processed')) continue;
+      const graphDef = el.textContent.trim();
+      try{
+        const id = 'mmd-' + Math.random().toString(36).slice(2,9);
+        const { svg } = await mermaid.render(id, graphDef);
+        el.innerHTML = svg;
+        el.setAttribute('data-processed','true');
+      }catch(e){
+        console.error('Mermaid render error', e);
+      }
+    }
+  }
+
+  function show(newIdx){
+    slides[idx].classList.remove('active');
+    idx = Math.max(0, Math.min(total-1, newIdx));
+    slides[idx].classList.add('active');
+    progressBar.style.width = ((idx+1)/total*100) + '%';
+    countLabel.textContent = pad(idx+1) + ' / ' + total;
+    prevBtn.disabled = idx===0;
+    nextBtn.disabled = idx===total-1;
+    if(!rendered.has(idx)){
+      rendered.add(idx);
+      renderMermaidIn(slides[idx]);
+    }
+  }
+
+  prevBtn.addEventListener('click', ()=>show(idx-1));
+  nextBtn.addEventListener('click', ()=>show(idx+1));
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowRight' || e.key===' '){ e.preventDefault(); show(idx+1); }
+    if(e.key==='ArrowLeft'){ e.preventDefault(); show(idx-1); }
+  });
+
+  let touchX=null;
+  document.addEventListener('touchstart', e=>touchX=e.touches[0].clientX);
+  document.addEventListener('touchend', e=>{
+    if(touchX===null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if(dx>60) show(idx-1);
+    if(dx<-60) show(idx+1);
+    touchX=null;
+  });
+
+  show(0);
+</script>
+</body>
+</html>

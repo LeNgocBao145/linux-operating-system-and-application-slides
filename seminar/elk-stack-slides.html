@@ -1,0 +1,1619 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELK Stack - Centralized Log Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Sans+Mono:wght@500;700&family=Noto+Serif:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (LIGHT EDITORIAL THEME)
+           Change these variables to retheme the whole deck.
+           =========================================== */
+        :root {
+            --stage-bg: #d9dde4;
+            --slide-bg: #f8f6f1;
+            --ink: #171717;
+            --muted: #65615a;
+            --line: #d7d0c5;
+            --paper: #fffdf8;
+            --mint: #98d4bb;
+            --sky: #a8d8ea;
+            --rose: #f4b8c5;
+            --sun: #ffe6a7;
+            --violet: #c7b8ea;
+            --elastic: #00bfb3;
+            --logstash: #f04e98;
+            --kibana: #f5a623;
+            --filebeat: #3f75ff;
+            --danger: #d94b3d;
+            --font-display: "Noto Serif", serif;
+            --font-body: "Be Vietnam Pro", sans-serif;
+            --font-mono: "Noto Sans Mono", monospace;
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           BASE RESET
+           Normalize element sizing before fixed-stage layout.
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===========================================
+           FIXED 16:9 STAGE: MANDATORY BASE STYLES
+           Include this ENTIRE file in every presentation.
+           Slides are authored at 1920×1080 and scaled as a whole.
+           =========================================== */
+
+        /* 1. Lock the browser viewport */
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: var(--stage-bg, #000);
+        }
+
+        /* 2. Full-window deck viewport */
+        .deck-viewport {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            background: var(--stage-bg, #000);
+        }
+
+        /* 3. Fixed 16:9 design canvas.
+           JavaScript sets transform: translate(...) scale(...). */
+        .deck-stage {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            transform-origin: 0 0;
+            background: var(--slide-bg, #fff);
+        }
+
+        /* 4. Slides stack inside the fixed stage.
+           Content must be laid out at 1920×1080, not reflowed per device. */
+        .slide {
+            position: absolute;
+            inset: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            display: block;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            background: var(--slide-bg, #fff);
+        }
+
+        .slide.active,
+        .slide.visible {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        /* 5. Keep media inside authored slide bounds */
+        img,
+        video,
+        canvas,
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* 6. Presentation chrome stays outside the slide design system */
+        .deck-controls {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        /* 7. Print one fixed-size slide per page */
+        @media print {
+            html,
+            body {
+                width: 1920px;
+                height: auto;
+                overflow: visible;
+                background: #fff;
+            }
+
+            .deck-viewport {
+                position: static;
+                overflow: visible;
+                background: #fff;
+            }
+
+            .deck-stage {
+                position: static;
+                width: auto;
+                height: auto;
+                transform: none !important;
+                background: none;
+            }
+
+            .slide {
+                position: relative;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                width: 1920px;
+                height: 1080px;
+                break-after: page;
+                page-break-after: always;
+            }
+
+            .slide:last-child {
+                break-after: auto;
+                page-break-after: auto;
+            }
+
+            .deck-controls,
+            .edit-hotzone,
+            .edit-toggle {
+                display: none !important;
+            }
+        }
+
+        /* 8. Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+        }
+
+        /* ===========================================
+           TYPOGRAPHY AND COMMON SLIDE CHROME
+           Defines the editorial paper system used throughout.
+           =========================================== */
+        body {
+            color: var(--ink);
+            font-family: var(--font-body);
+        }
+
+        .slide {
+            padding: 76px 92px 72px;
+        }
+
+        .slide::before {
+            content: "";
+            position: absolute;
+            inset: 34px;
+            border: 2px solid rgba(23, 23, 23, 0.08);
+            pointer-events: none;
+        }
+
+        .slide::after {
+            content: "";
+            position: absolute;
+            left: 52px;
+            top: 150px;
+            width: 12px;
+            height: 780px;
+            background:
+                linear-gradient(var(--mint) 0 16%, transparent 16% 20%),
+                linear-gradient(var(--rose) 20% 36%, transparent 36% 40%),
+                linear-gradient(var(--sky) 40% 56%, transparent 56% 60%),
+                linear-gradient(var(--sun) 60% 76%, transparent 76% 80%),
+                linear-gradient(var(--violet) 80% 100%);
+            border-radius: 99px;
+            opacity: 0.9;
+        }
+
+        .deck-label {
+            position: absolute;
+            top: 48px;
+            left: 92px;
+            font-family: var(--font-mono);
+            font-size: 20px;
+            letter-spacing: 0;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .slide-no {
+            position: absolute;
+            right: 92px;
+            top: 48px;
+            font-family: var(--font-mono);
+            font-size: 20px;
+            color: var(--muted);
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            line-height: 1.04;
+            letter-spacing: 0;
+        }
+
+        h1 {
+            font-size: 122px;
+            max-width: 1180px;
+        }
+
+        h2 {
+            font-size: 76px;
+            max-width: 1440px;
+        }
+
+        h3 {
+            font-size: 44px;
+        }
+
+        p, li {
+            font-size: 33px;
+            line-height: 1.34;
+        }
+
+        code,
+        pre {
+            font-family: var(--font-mono);
+        }
+
+        code {
+            display: inline-block;
+            padding: 2px 9px 3px;
+            border: 1px solid rgba(23, 23, 23, 0.18);
+            border-radius: 5px;
+            background: #f0ece4;
+            color: #111;
+            font-size: 0.78em;
+            line-height: 1.12;
+            vertical-align: baseline;
+        }
+
+        .muted { color: var(--muted); }
+        .accent { color: var(--filebeat); }
+        .danger { color: var(--danger); }
+
+        /* ===========================================
+           ANIMATIONS
+           Staggered editorial reveals triggered by .visible.
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(32px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.08s; }
+        .reveal:nth-child(2) { transition-delay: 0.16s; }
+        .reveal:nth-child(3) { transition-delay: 0.24s; }
+        .reveal:nth-child(4) { transition-delay: 0.32s; }
+        .reveal:nth-child(5) { transition-delay: 0.40s; }
+        .reveal:nth-child(6) { transition-delay: 0.48s; }
+
+        /* ===========================================
+           LAYOUT COMPONENTS
+           Reusable blocks sized for the 1920x1080 canvas.
+           =========================================== */
+        .title-grid {
+            position: absolute;
+            left: 150px;
+            top: 190px;
+            width: 1520px;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .title-kicker {
+            font-family: var(--font-mono);
+            font-size: 26px;
+            color: var(--muted);
+            margin-bottom: 28px;
+        }
+
+        .subtitle {
+            margin-top: 38px;
+            max-width: 980px;
+            color: var(--muted);
+            font-size: 35px;
+        }
+
+        .flow-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .flow-item {
+            min-height: 190px;
+            background: var(--paper);
+            border: 2px solid var(--line);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .flow-item strong {
+            font-size: 34px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            padding: 8px 14px;
+            font-family: var(--font-mono);
+            font-size: 20px;
+            border: 2px solid var(--ink);
+            background: var(--sun);
+        }
+
+        .title-side {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .member-list {
+            background: var(--paper);
+            border: 2px solid var(--line);
+            border-radius: 6px;
+            padding: 24px 30px 24px 58px;
+        }
+
+        .member-list li {
+            font-size: 26px;
+            line-height: 1.24;
+            padding-left: 8px;
+            margin-bottom: 12px;
+        }
+
+        .member-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .member-list .student-id {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            color: var(--muted);
+            margin-right: 12px;
+        }
+
+        .content {
+            position: absolute;
+            left: 150px;
+            top: 170px;
+            width: 1580px;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 42px;
+            margin-top: 48px;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+            margin-top: 44px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 28px;
+            margin-top: 44px;
+        }
+
+        .card,
+        .note,
+        .code-card {
+            background: var(--paper);
+            border: 2px solid var(--line);
+            border-radius: 6px;
+            padding: 30px 34px;
+        }
+
+        .card h3,
+        .note h3 {
+            margin-bottom: 16px;
+        }
+
+        .card p,
+        .note p,
+        .card li {
+            font-size: 28px;
+        }
+
+        .card ul,
+        .note ul {
+            margin-left: 26px;
+        }
+
+        .code-card {
+            background: #1f252b;
+            color: #eef4ef;
+            border-color: #111;
+            box-shadow: inset 8px 0 0 var(--mint);
+        }
+
+        .code-card pre {
+            white-space: pre-wrap;
+            font-size: 25px;
+            line-height: 1.36;
+        }
+
+        .code-card.small pre {
+            font-size: 21px;
+        }
+
+        .pipeline {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 24px;
+            margin-top: 62px;
+            align-items: stretch;
+        }
+
+        .pipe-node {
+            position: relative;
+            padding: 30px 24px;
+            min-height: 235px;
+            background: var(--paper);
+            border: 2px solid var(--ink);
+        }
+
+        .pipe-node::after {
+            content: "→";
+            position: absolute;
+            right: -32px;
+            top: 84px;
+            font-size: 54px;
+            font-family: var(--font-display);
+        }
+
+        .pipe-node:last-child::after { content: ""; }
+
+        .pipe-node .tag {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            color: var(--muted);
+            margin-bottom: 18px;
+        }
+
+        .pipe-node h3 {
+            font-family: var(--font-body);
+            font-weight: 800;
+            font-size: 38px;
+            line-height: 1.05;
+        }
+
+        .pipe-node p {
+            margin-top: 18px;
+            font-size: 24px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+            background: var(--paper);
+            border: 2px solid var(--line);
+        }
+
+        .table th,
+        .table td {
+            border-bottom: 2px solid var(--line);
+            border-right: 2px solid var(--line);
+            padding: 20px 24px;
+            font-size: 25px;
+            line-height: 1.25;
+            vertical-align: top;
+        }
+
+        .table th {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            text-align: left;
+            background: #efe9de;
+        }
+
+        .diagram-frame {
+            margin-top: 34px;
+            height: 690px;
+            background: var(--paper);
+            border: 2px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .diagram-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .diagram-frame.compact {
+            height: 560px;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .big-number {
+            font-family: var(--font-display);
+            font-size: 172px;
+            line-height: 0.8;
+            color: rgba(23, 23, 23, 0.1);
+        }
+
+        .section-slide {
+            background:
+                linear-gradient(90deg, transparent 0 78%, rgba(152, 212, 187, 0.36) 78% 100%),
+                var(--slide-bg);
+        }
+
+        .section-slide .content {
+            top: 230px;
+        }
+
+        .section-title {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 44px;
+            align-items: start;
+        }
+
+        .closing-list {
+            margin-top: 56px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+        }
+
+        .closing-list .card {
+            min-height: 230px;
+        }
+
+        .reference-list {
+            background: var(--paper);
+            border: 2px solid var(--line);
+            border-radius: 6px;
+            padding: 20px 34px;
+        }
+
+        .reference-list h3 {
+            font-family: var(--font-body);
+            font-size: 30px;
+            margin-bottom: 18px;
+        }
+
+        .reference-list ol {
+            margin-left: 24px;
+            column-count: 2;
+            column-gap: 54px;
+        }
+
+        .reference-list li {
+            break-inside: avoid;
+            margin-bottom: 18px;
+            padding-right: 8px;
+        }
+
+        .reference-title {
+            display: block;
+            font-size: 20px;
+            line-height: 1.2;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        .reference-url {
+            display: block;
+            font-size: 18px;
+            line-height: 1.3;
+            color: var(--muted);
+            word-break: break-word;
+        }
+
+        .reference-list a {
+            color: var(--ink);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(23, 23, 23, 0.28);
+        }
+
+        /* ===========================================
+           EDIT MODE AND CONTROLS
+           Lightweight browser editing with localStorage.
+           =========================================== */
+        .deck-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(248, 246, 241, 0.92);
+            border: 1px solid rgba(23, 23, 23, 0.18);
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--ink);
+            backdrop-filter: blur(10px);
+        }
+
+        .deck-controls button,
+        .edit-toggle {
+            border: 1px solid rgba(23, 23, 23, 0.3);
+            background: var(--paper);
+            color: var(--ink);
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-family: var(--font-mono);
+            cursor: pointer;
+        }
+
+        .edit-hotzone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 10000;
+            cursor: pointer;
+        }
+
+        .edit-toggle {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 10001;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .edit-toggle.show,
+        .edit-toggle.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        [contenteditable="true"] {
+            outline: 3px dashed rgba(63, 117, 255, 0.45);
+            outline-offset: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="deck-viewport">
+        <main class="deck-stage" id="deckStage">
+            <section class="slide title-slide active">
+                <div class="deck-label">Linux Seminar / ELK Stack</div>
+                <div class="slide-no">1 / 37</div>
+                <div class="title-grid">
+                    <div>
+                        <div class="title-kicker reveal">Centralized Log Management</div>
+                        <h1 class="reveal">ELK Stack</h1>
+                        <p class="subtitle reveal">Thu thập, xử lý, tìm kiếm và trực quan hóa log tập trung trên Linux.</p>
+                    </div>
+                    <div class="title-side">
+                        <div class="flow-strip reveal">
+                            <div class="flow-item"><span class="chip">ship</span><strong>Filebeat</strong><p>Gửi log từ máy nguồn</p></div>
+                            <div class="flow-item"><span class="chip">parse</span><strong>Logstash</strong><p>Biến text thành field</p></div>
+                            <div class="flow-item"><span class="chip">index</span><strong>Elasticsearch</strong><p>Lưu và tìm kiếm nhanh</p></div>
+                            <div class="flow-item"><span class="chip">view</span><strong>Kibana</strong><p>Dashboard và phân tích</p></div>
+                        </div>
+                        <ol class="member-list reveal">
+                            <li><span class="student-id">23127176</span>Huỳnh Lê Khương Duy</li>
+                            <li><span class="student-id">23127303</span>Hồ Tấn Quốc</li>
+                            <li><span class="student-id">23127345</span>Võ Thành Đạt</li>
+                            <li><span class="student-id">23127461</span>Nguyễn Ngọc Minh Quân</li>
+                            <li><span class="student-id">23127510</span>Phùng Ngọc Tuấn</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Agenda</div>
+                <div class="slide-no">2 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Nội dung</h2>
+                    <div class="pipeline reveal">
+                        <div class="pipe-node"><div class="tag">01</div><h3>Mở đầu</h3><p>Log là gì và vì sao cách cũ bắt đầu quá tải.</p></div>
+                        <div class="pipe-node"><div class="tag">02</div><h3>Kiến trúc</h3><p>Source → Filebeat → Logstash → Elasticsearch → Kibana.</p></div>
+                        <div class="pipe-node"><div class="tag">03</div><h3>Cài đặt</h3><p>Docker Compose, pipeline, Grok và các lỗi thường gặp.</p></div>
+                        <div class="pipe-node"><div class="tag">04</div><h3>Đánh giá</h3><p>Khi nào nên dùng ELK, khi nào chọn Loki hoặc Graylog.</p></div>
+                        <div class="pipe-node"><div class="tag">05</div><h3>Tổng kết</h3><p>Những ý chính và Q&A.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide section-slide">
+                <div class="deck-label">Phần 1</div>
+                <div class="slide-no">3 / 37</div>
+                <div class="content section-title">
+                    <div class="big-number reveal">01</div>
+                    <div>
+                        <h2 class="reveal">Vấn đề: log nằm rải rác</h2>
+                        <p class="subtitle reveal">Một vài máy thì <code>tail</code>, <code>grep</code>, <code>journalctl</code> còn ổn. Nhiều máy và nhiều định dạng log thì bắt đầu khó truy vết.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Log Cơ Bản</div>
+                <div class="slide-no">4 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Log là dấu vết của hệ thống</h2>
+                    <div class="two-col">
+                        <div class="card reveal">
+                            <h3>Công cụ cũ</h3>
+                            <ul>
+                                <li><code>cat</code>, <code>tail</code>, <code>grep</code></li>
+                                <li><code>journalctl</code> với systemd</li>
+                                <li><code>rsyslog</code> để ghi hoặc chuyển tiếp log</li>
+                            </ul>
+                        </div>
+                        <div class="card reveal">
+                            <h3>Giới hạn</h3>
+                            <ul>
+                                <li>Phải SSH vào từng máy</li>
+                                <li>Log vẫn là text thô</li>
+                                <li>Khó đếm, lọc theo field, dựng dashboard</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 30px;">
+                        <p>Vấn đề không chỉ là tìm một dòng log, mà là hiểu chuyện gì đang xảy ra trên toàn hệ thống.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Centralized Logging</div>
+                <div class="slide-no">5 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Vì sao cần gom log tập trung?</h2>
+                    <div class="three-col">
+                        <div class="card reveal"><h3>Centralize</h3><p>Gom log từ nhiều máy, nhiều service về một nơi.</p></div>
+                        <div class="card reveal"><h3>Structure</h3><p>Tách text thô thành field như <code>status</code>, <code>client_ip</code>, <code>service</code>.</p></div>
+                        <div class="card reveal"><h3>Observe</h3><p>Lọc, thống kê, vẽ biểu đồ và phát hiện bất thường.</p></div>
+                    </div>
+                    <div class="code-card reveal" style="margin-top: 42px;">
+                        <pre>Log source → Filebeat → Logstash → Elasticsearch → Kibana</pre>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide section-slide">
+                <div class="deck-label">Phần 2</div>
+                <div class="slide-no">6 / 37</div>
+                <div class="content section-title">
+                    <div class="big-number reveal">02</div>
+                    <div>
+                        <h2 class="reveal">ELK hoạt động như thế nào?</h2>
+                        <p class="subtitle reveal">Nhìn theo vai trò: nguồn sinh log, shipper, processor, storage và visualization.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Architecture</div>
+                <div class="slide-no">7 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Kiến trúc tổng quan</h2>
+                    <div class="diagram-frame reveal">
+                        <img src="diagram.png" alt="Sơ đồ kiến trúc ELK Stack của nhóm">
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Filebeat</div>
+                <div class="slide-no">8 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Shipper: Filebeat</h2>
+                    <div class="cards">
+                        <div class="card reveal"><h3>Theo dõi file log</h3><p>Ví dụ <code>/var/log/nginx/access.log</code>, đọc dòng mới ngay khi file được ghi thêm.</p></div>
+                        <div class="card reveal"><h3>Nhớ vị trí đã đọc</h3><p>Restart không gửi lại toàn bộ file từ đầu.</p></div>
+                        <div class="card reveal"><h3>Không xử lý nặng</h3><p>Filebeat chủ yếu chuyển tiếp, không parse sâu dữ liệu.</p></div>
+                        <div class="card reveal"><h3>Gắn field phân loại</h3><p>Nhiều input có thể gắn <code>fields.service</code> để Logstash biết áp filter nào.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Logstash</div>
+                <div class="slide-no">9 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Processor: Logstash & Grok</h2>
+                    <div class="two-col">
+                        <div class="code-card reveal">
+                            <pre>27.74.123.89 - - [23/Jul/2026:04:40:12 +0000] "GET / HTTP/1.1" 200 612</pre>
+                        </div>
+                        <div class="code-card reveal">
+                            <pre>clientip: 27.74.123.89
+timestamp: 23/Jul/2026:04:40:12 +0000
+verb:     GET
+httpversion: 1.1
+request:  /
+response: 200
+bytes:    612</pre>
+                        </div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 34px;">
+                        <p>Grok là tập pattern mô tả đoạn nào trong chuỗi text mang ý nghĩa gì. Từ đây Kibana mới lọc theo từng trường được.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Elasticsearch</div>
+                <div class="slide-no">10 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Storage: Elasticsearch</h2>
+                    <div class="three-col">
+                        <div class="card reveal"><h3>Document</h3><p>Một dòng log đã xử lý, lưu dưới dạng JSON.</p></div>
+                        <div class="card reveal"><h3>Field</h3><p>Cặp khóa - giá trị như <code>status: 404</code>.</p></div>
+                        <div class="card reveal"><h3>Index</h3><p>Tập document cùng loại, thường chia theo ngày.</p></div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 34px;">
+                        <p><strong>Inverted index</strong> giúp tìm <code>404 → [doc_5, doc_19, doc_88]</code> thay vì quét từng dòng log.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Kibana</div>
+                <div class="slide-no">11 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Visualization: Kibana</h2>
+                    <div class="cards">
+                        <div class="card reveal"><h3>Data view</h3><p>Chọn index pattern, ví dụ <code>nginx-*</code>.</p></div>
+                        <div class="card reveal"><h3>Discover</h3><p>Tìm kiếm, lọc field và xem từng dòng log.</p></div>
+                        <div class="card reveal"><h3>Visualize</h3><p>Đếm, nhóm theo thời gian, dựng bar chart hoặc dashboard.</p></div>
+                        <div class="card reveal"><h3>Vai trò thật</h3><p>Kibana gửi yêu cầu tới Elasticsearch, nhận kết quả và vẽ lại.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide section-slide">
+                <div class="deck-label">Phần 3</div>
+                <div class="slide-no">12 / 37</div>
+                <div class="content section-title">
+                    <div class="big-number reveal">03</div>
+                    <div>
+                        <h2 class="reveal">Cài đặt & cấu hình demo</h2>
+                        <p class="subtitle reveal">Dùng Docker Compose để tái lập nhanh, khóa version đồng bộ và tách pipeline Logstash theo service.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Docker Compose</div>
+                <div class="slide-no">13 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Vì sao chọn Docker Compose?</h2>
+                    <div class="three-col">
+                        <div class="card reveal"><h3>Nhanh</h3><p>Không cần cài Elasticsearch, Logstash, Kibana thủ công lên hệ điều hành.</p></div>
+                        <div class="card reveal"><h3>Tái lập</h3><p>Một file định nghĩa toàn bộ hệ thống, dễ <code>down</code> và dựng lại.</p></div>
+                        <div class="card reveal"><h3>Đồng bộ</h3><p>Khóa cùng version cho mọi image ngay trong <code>docker-compose.yml</code>.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Version</div>
+                <div class="slide-no">14 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Lưu ý quan trọng: đồng bộ version</h2>
+                    <div class="code-card reveal" style="margin-top: 46px;">
+                        <pre>elasticsearch: docker.elastic.co/elasticsearch/elasticsearch:9.4.2
+kibana:        docker.elastic.co/kibana/kibana:9.4.2
+logstash:      docker.elastic.co/logstash/logstash:9.4.2
+filebeat:      docker.elastic.co/beats/filebeat:9.4.2</pre>
+                    </div>
+                    <div class="note reveal" style="margin-top: 34px;">
+                        <p>Nếu lệch version, hệ thống có thể báo không tương thích, hoặc tệ hơn là chạy được nhưng hiển thị sai lệch khó nhận ra.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Repo Structure</div>
+                <div class="slide-no">15 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Cấu trúc file cấu hình</h2>
+                    <div class="code-card small reveal" style="margin-top: 38px;">
+                        <pre>elk-demo/
+├── docker-compose.yml
+└── logstash/
+    └── pipeline/
+        ├── 00-input.conf
+        ├── 01-filter-default.conf
+        ├── 10-filter-nginx.conf
+        ├── 11-filter-ssh-auth.conf
+        ├── 12-filter-python-app.conf
+        ├── 13-filter-apache.conf
+        └── 90-output.conf</pre>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Compose Config</div>
+                <div class="slide-no">16 / 37</div>
+                <div class="content">
+                    <h2 class="reveal"><code>docker-compose.yml</code>: demo-friendly, không production</h2>
+                    <div class="two-col">
+                        <div class="code-card reveal">
+                            <pre>elasticsearch:
+  environment:
+    - discovery.type=single-node
+    - xpack.security.enabled=false
+    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"</pre>
+                        </div>
+                        <div class="card reveal">
+                            <h3>Ý nghĩa</h3>
+                            <ul>
+                                <li><code>single-node</code>: không cấu hình cluster</li>
+                                <li>Tắt security để demo đơn giản</li>
+                                <li>Giới hạn JVM để nhẹ RAM</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Nginx Logs</div>
+                <div class="slide-no">17 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Nginx: ghi log ra file thật</h2>
+                    <div class="code-card reveal" style="margin-top: 42px;">
+                        <pre># nginx/logging.conf
+access_log /var/log/custom-nginx/access.log combined;
+
+# docker-compose.yml
+nginx:
+  image: nginx:latest
+  volumes:
+    - nginx_logs:/var/log/custom-nginx
+    - ./nginx/logging.conf:/etc/nginx/conf.d/logging.conf:ro</pre>
+                    </div>
+                    <div class="note reveal" style="margin-top: 30px;">
+                        <p>Image Nginx chính thức thường trỏ log ra <code>/dev/stdout</code>; mount sai đường dẫn có thể khiến Filebeat không đọc được file thật.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Filebeat Config</div>
+                <div class="slide-no">18 / 37</div>
+                <div class="content">
+                    <h2 class="reveal"><code>filebeat.yml</code> chạy trên từng máy nguồn</h2>
+                    <div class="code-card reveal" style="margin-top: 44px;">
+                        <pre>filebeat.inputs:
+  - type: filestream
+    id: nginx-access
+    paths:
+      - /var/log/custom-nginx/access.log
+    fields:
+      service: nginx
+
+output.logstash:
+  hosts: ["&lt;ip-vm-trung-tam&gt;:5044"]</pre>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Pipeline</div>
+                <div class="slide-no">19 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Logstash: input & output dùng chung</h2>
+                    <div class="two-col">
+                        <div class="code-card reveal">
+                            <pre># 00-input.conf
+input { beats { port => 5044 } }</pre>
+                        </div>
+                        <div class="code-card reveal">
+                            <pre># 90-output.conf
+output {
+  elasticsearch {
+    hosts => ["http://elasticsearch:9200"]
+    index => "%{[fields][service]}-logs-%{+YYYY.MM.dd}"
+  }
+}</pre>
+                        </div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 30px;">
+                        <p>Thêm service mới chỉ cần thêm file filter mới; output vẫn đặt tên index động theo <code>fields.service</code>.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Grok</div>
+                <div class="slide-no">20 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Grok Filter là gì?</h2>
+                    <div class="two-col">
+                        <div class="card reveal">
+                            <h3>Cú pháp</h3>
+                            <p><code>%{PATTERN:tên_field}</code></p>
+                            <p class="muted" style="margin-top: 18px;">Phần chữ hoa là pattern có sẵn; phần sau dấu <code>:</code> là field mới.</p>
+                        </div>
+                        <div class="card reveal">
+                            <h3>Giá trị</h3>
+                            <p>Tách một dòng text dài thành IP, timestamp, status, bytes, service...</p>
+                        </div>
+                    </div>
+                    <div class="code-card reveal" style="margin-top: 32px;">
+                        <pre>grok { match => { "message" => "%{COMBINEDAPACHELOG}" } }</pre>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Nginx Grok</div>
+                <div class="slide-no">21 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Ví dụ pattern có sẵn: Nginx</h2>
+                    <div class="two-col">
+                        <div class="code-card reveal">
+                            <pre>grok {
+  match => { "message" => "%{COMBINEDAPACHELOG}" }
+}
+
+27.74.123.89 - - [23/Jul/2026:04:40:12 +0000] "GET / HTTP/1.1" 200 612</pre>
+                        </div>
+                        <div class="code-card reveal">
+                            <pre>clientip: 27.74.123.89
+timestamp: 23/Jul/2026:04:40:12 +0000
+verb:     GET
+httpversion: 1.1
+request:  /
+response: 200
+bytes:    612</pre>
+                        </div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 30px;">
+                        <p><code>COMBINEDAPACHELOG</code> khớp định dạng access log chuẩn của Nginx/Apache, giúp một dòng log thô sẵn sàng để lọc và thống kê trong Kibana.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Custom Grok</div>
+                <div class="slide-no">22 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Tự viết pattern cho app Python</h2>
+                    <div class="code-card reveal" style="margin-top: 36px;">
+                        <pre>Log gốc:
+2026-07-23T16:41:28+0700 WARNING service=order-api message=Order processing exceeded latency threshold
+
+Grok pattern:
+"^%{TIMESTAMP_ISO8601:log_timestamp} %{LOGLEVEL:app_log_level} service=%{NOTSPACE:app_service} message=%{GREEDYDATA:app_message}$"
+
+Kết quả:
+log_timestamp: 2026-07-23T16:41:28+0700
+app_log_level: WARNING
+app_service:   order-api
+app_message:   Order processing exceeded latency threshold</pre>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Mistakes</div>
+                <div class="slide-no">23 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Lỗi thường gặp</h2>
+                    <div class="cards">
+                        <div class="card reveal"><h3>Version lệch</h3><p>Elasticsearch, Kibana, Logstash, Filebeat không cùng version.</p></div>
+                        <div class="card reveal"><h3>Log là symlink</h3><p>Nginx/Apache trong container ghi ra <code>/dev/stdout</code>, không phải file thật.</p></div>
+                        <div class="card reveal"><h3>Restart chưa đủ</h3><p>Sửa config nhưng không <code>--force-recreate</code>, container vẫn dùng config cũ.</p></div>
+                        <div class="card reveal"><h3>Quên data view</h3><p>Dữ liệu đã vào Elasticsearch nhưng Kibana vẫn “không thấy”.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Best Practices</div>
+                <div class="slide-no">24 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Best practices khi dựng demo ELK</h2>
+                    <div class="cards">
+                        <div class="card reveal"><h3>Khóa version</h3><p>Dùng cùng một version cho Elasticsearch, Kibana, Logstash và Filebeat.</p></div>
+                        <div class="card reveal"><h3>Đọc log thật</h3><p>Kiểm tra <code>docker compose logs -f &lt;service&gt;</code> trước khi đoán lỗi ở đâu.</p></div>
+                        <div class="card reveal"><h3>Tách pipeline</h3><p>Đặt số thứ tự file Logstash để input đọc trước, filter ở giữa, output sau cùng.</p></div>
+                        <div class="card reveal"><h3>Mở rộng bằng field</h3><p>Dùng <code>fields.service</code> và index động để thêm service mà không sửa output.</p></div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 30px;">
+                        <p>Chỉ tắt bảo mật cho phạm vi demo/học tập; production cần bật lại các lớp xác thực và giới hạn mạng.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Logstash Security</div>
+                <div class="slide-no">25 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Bảo mật Logstash</h2>
+                    <div class="two-col">
+                        <div class="card reveal">
+                            <h3>Rủi ro của demo</h3>
+                            <ul>
+                                <li><code>xpack.security.enabled=false</code></li>
+                                <li>Port 5044 mở cho mọi nguồn</li>
+                                <li>Có thể bị gửi log giả hoặc gây nhiễu dữ liệu</li>
+                            </ul>
+                        </div>
+                        <div class="code-card small reveal">
+                            <pre>input {
+  beats {
+    port => 5044
+    ssl_enabled => true
+    ssl_client_authentication => "required"
+    ssl_certificate_authorities => ["/certs/ca.crt"]
+    ssl_certificate => "/certs/logstash.crt"
+    ssl_key => "/certs/logstash.key"
+  }
+}</pre>
+                        </div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 30px;">
+                        <p>Hai lớp nên có: firewall/Security Group chỉ cho IP nguồn tin cậy, và mutual TLS để Filebeat phải trình chứng chỉ hợp lệ.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Kibana Security</div>
+                <div class="slide-no">26 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Bảo mật Kibana</h2>
+                    <div class="cards">
+                        <div class="card reveal"><h3>Bật lại security</h3><p><code>xpack.security.enabled=true</code>, đặt password cho <code>elastic</code> và <code>kibana_system</code>.</p></div>
+                        <div class="card reveal"><h3>RBAC</h3><p>Tạo user chỉ đọc dashboard cho người không cần quyền quản trị.</p></div>
+                        <div class="card reveal"><h3>HTTPS</h3><p>Bật <code>server.ssl.enabled=true</code> để tránh lộ thông tin đăng nhập.</p></div>
+                        <div class="card reveal"><h3>Không public 5601</h3><p>Đặt sau VPN hoặc reverse proxy có xác thực bổ sung.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide section-slide">
+                <div class="deck-label">Phần 4</div>
+                <div class="slide-no">27 / 37</div>
+                <div class="content section-title">
+                    <div class="big-number reveal">04</div>
+                    <div>
+                        <h2 class="reveal">Khi nào nên dùng ELK?</h2>
+                        <p class="subtitle reveal">ELK mạnh, nhưng không miễn phí theo nghĩa vận hành: nó cần RAM, đĩa và người chăm hệ thống.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Loki</div>
+                <div class="slide-no">28 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Giải pháp thay thế: Grafana Loki</h2>
+                    <table class="table reveal">
+                        <thead><tr><th></th><th>ELK</th><th>Loki</th></tr></thead>
+                        <tbody>
+                            <tr><td>Đánh index</td><td>Mọi field sau khi Grok tách</td><td>Chỉ vài nhãn: <code>job</code>, <code>host</code>, <code>env</code></td></tr>
+                            <tr><td>Log gốc</td><td>Tách nhỏ, lưu trong Elasticsearch</td><td>Giữ nguyên dòng, nén, đẩy lên object storage</td></tr>
+                            <tr><td>Tách field</td><td>Lúc log đi vào pipeline</td><td>Lúc truy vấn bằng LogQL</td></tr>
+                            <tr><td>Giao diện</td><td>Kibana</td><td>Grafana</td></tr>
+                            <tr><td>Tài nguyên</td><td>Nặng hơn</td><td>Nhẹ hơn</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="note reveal" style="margin-top: 30px;">
+                        <p>Khác biệt chính: ELK trả giá trước bằng index nhiều field; Loki tiết kiệm hơn nhưng parse sâu ở thời điểm query.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Label vs Index</div>
+                <div class="slide-no">29 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Cùng một dòng log, hai cách lưu</h2>
+                    <div class="code-card reveal" style="margin-top: 30px;">
+<pre>203.0.113.45 - - [07/Aug/2026:04:40:12 +0700] "GET /products/38 HTTP/1.1" 404 512
+198.51.100.9 - - [07/Aug/2026:04:40:13 +0700] "GET /products/91 HTTP/1.1" 404 498</pre>
+                    </div>
+                    <div class="two-col" style="margin-top: 30px;">
+                        <div class="card reveal">
+                            <h3>Loki lưu</h3>
+                            <p>Nhãn <code>{job="nginx", host="web-01", env="prod"}</code> + nguyên hai dòng trên, nén lại. Hết.</p>
+                            <p class="muted" style="margin-top: 16px;">Không biết <code>404</code> là status, không biết <code>203.0.113.45</code> là IP.</p>
+                        </div>
+                        <div class="card reveal">
+                            <h3>ELK lưu</h3>
+                            <p>Grok tách rồi index từng field: <code>clientip</code>, <code>verb</code>, <code>request</code>, <code>response</code>, <code>bytes</code>, <code>@timestamp</code>.</p>
+                            <p class="muted" style="margin-top: 16px;">Tra field nào cũng có sẵn danh sách để nhảy tới.</p>
+                        </div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 26px;">
+                        <p><strong>Ranh giới:</strong> biết trước chỗ cần tìm (máy nào, giờ nào) → nhãn là đủ, phần còn lại grep. Phải quét cả đống để tìm ra chỗ → cần index field.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">LogQL</div>
+                <div class="slide-no">30 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Chỉ có nhãn thì truy vấn kiểu gì?</h2>
+                    <div class="code-card reveal" style="margin-top: 38px;">
+                        <pre>{job="nginx", env="prod"}      # dùng index để chọn khối dữ liệu
+  |= "404"                     # grep trên text gốc vừa đọc lên
+  | pattern "&lt;ip&gt; - - &lt;_&gt; \"&lt;method&gt; &lt;path&gt; &lt;_&gt;\" &lt;status&gt; &lt;bytes&gt;"
+  | status = "404"             # tách field ngay lúc query</pre>
+                    </div>
+                    <div class="note reveal" style="margin-top: 34px;">
+                        <p><strong>Quy tắc:</strong> nhãn chỉ dành cho thứ có ít giá trị như service, host, env. Không đặt nhãn <code>clientip</code> hoặc <code>user_id</code> vì cardinality cao sẽ làm Loki rất chậm.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">ELK vs Loki</div>
+                <div class="slide-no">31 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Chọn Loki thay ELK: được gì, mất gì</h2>
+                    <div class="two-col" style="margin-top: 34px;">
+                        <div class="card reveal">
+                            <h3 class="accent">Được</h3>
+                            <ul>
+                                <li>Log để thẳng trên S3 — rẻ hơn ổ SSD vài lần</li>
+                                <li>Nhẹ RAM, vì không index mọi field</li>
+                                <li>Ít thành phần: một dịch vụ + object storage, không cần database</li>
+                            </ul>
+                        </div>
+                        <div class="card reveal">
+                            <h3 class="danger">Mất</h3>
+                            <ul>
+                                <li>Thống kê theo field chậm — mỗi lần chạy phải đọc lại dữ liệu thô</li>
+                                <li>Mỗi giá trị nhãn là một file riêng, nên đặt nhãn theo IP là sập; ELK index IP thì bình thường</li>
+                                <li>Người viết query phải tự lo thứ tự cho nhanh</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Graylog</div>
+                <div class="slide-no">32 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Graylog: khai một cái nhóm, log tự vào</h2>
+                    <p class="subtitle reveal" style="margin-top: 14px;">Trên giao diện Graylog, bạn tạo một <strong>nhóm log có tên</strong> — điều kiện và cài đặt nằm chung một chỗ.</p>
+                    <div class="code-card reveal" style="margin-top: 24px;">
+<pre>Nhóm  "Lỗi web"
+  điều kiện :  máy = web-*   và   status &gt;= 400
+  giữ       :  7 ngày rồi xoá
+  ai xem    :  nhóm Web
+  báo động  :  &gt; 100 dòng/phút  →  Slack</pre>
+                    </div>
+                    <div class="note reveal" style="margin-top: 24px;">
+                        <p>Dòng log lúc nãy khớp điều kiện, nên <strong>trước khi ghi xuống OpenSearch</strong> nó đã được xếp vào nhóm này — và tự nhận luôn ba cài đặt còn lại.</p>
+                    </div>
+                    <div class="note reveal" style="margin-top: 18px;">
+                        <p class="muted">ELK làm được cả ba, nhưng ở ba chỗ rời nhau: điều kiện viết trong Logstash, xoá log cũ khai trong ILM của Elasticsearch, phân quyền cấu hình trong Kibana.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">ELK vs Graylog</div>
+                <div class="slide-no">33 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Chọn Graylog thay ELK: được gì, mất gì</h2>
+                    <div class="two-col" style="margin-top: 34px;">
+                        <div class="card reveal">
+                            <h3 class="accent">Được</h3>
+                            <ul>
+                                <li>Nhóm log gắn liền quyền xem, thời gian giữ và cảnh báo — khai một chỗ</li>
+                                <li>Sửa luật tách field trên web, dán thử một dòng log xem trước khi lưu</li>
+                            </ul>
+                        </div>
+                        <div class="card reveal">
+                            <h3 class="danger">Mất</h3>
+                            <ul>
+                                <li>Thêm một database phải lo sao lưu — mất MongoDB là mất hết cấu hình; Kibana chết thì bật lại là xong</li>
+                                <li>Khoá vào OpenSearch; từ bản 6 bỏ hỗ trợ Elasticsearch</li>
+                                <li>Vẽ biểu đồ và kho dashboard dựng sẵn thua Kibana</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 26px;">
+                        <p><strong>Chọn Graylog khi</strong> nhiều nhóm dùng chung một hệ thống log, mỗi nhóm chỉ được xem phần của mình. Nói thẳng: <strong>Graylog là lựa chọn lúc bắt đầu, không phải lúc đã chạy.</strong></p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Choose</div>
+                <div class="slide-no">34 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Chốt lại: chọn cái nào?</h2>
+                    <div class="cards">
+                        <div class="card reveal"><h3>ELK</h3><p>Cần lọc, đếm, vẽ biểu đồ theo field.</p></div>
+                        <div class="card reveal"><h3>Loki</h3><p>Chỉ cần tìm lại dòng log, giữ lâu, chi phí thấp.</p></div>
+                        <div class="card reveal"><h3>Graylog</h3><p>Nhiều nhóm dùng chung, mỗi nhóm chỉ xem phần của mình.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Journald / Rsyslog</div>
+                <div class="slide-no">35 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">ELK không thay thế hoàn toàn <code>journald</code> / <code>rsyslog</code></h2>
+                    <table class="table reveal">
+                        <thead><tr><th>Tiêu chí</th><th><code>journald</code> / <code>rsyslog</code></th><th>ELK Stack</th></tr></thead>
+                        <tbody>
+                            <tr><td>Phạm vi</td><td>Một máy hoặc chuyển tiếp log thô</td><td>Gom log từ nhiều máy</td></tr>
+                            <tr><td>Cách xem</td><td><code>journalctl</code>, <code>tail</code>, <code>grep</code></td><td>Kibana</td></tr>
+                            <tr><td>Xử lý dữ liệu</td><td>Ít hoặc cơ bản</td><td>Logstash + Grok</td></tr>
+                            <tr><td>Tìm kiếm</td><td>Theo chuỗi, service, thời gian</td><td>Theo từng field</td></tr>
+                            <tr><td>Visualization</td><td>Không có sẵn</td><td>Biểu đồ, dashboard</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Conclusion</div>
+                <div class="slide-no">36 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Key takeaways</h2>
+                    <div class="closing-list">
+                        <div class="card reveal"><h3>Centralize</h3><p>Filebeat đưa log từ nhiều nguồn về trung tâm.</p></div>
+                        <div class="card reveal"><h3>Structure</h3><p>Logstash và Grok biến log thô thành dữ liệu có field.</p></div>
+                        <div class="card reveal"><h3>Observe</h3><p>Elasticsearch tìm kiếm nhanh, Kibana biến dữ liệu thành dashboard.</p></div>
+                    </div>
+                    <div class="note reveal" style="margin-top: 36px;">
+                        <p>ELK phù hợp khi cần quản lý log tập trung, tìm kiếm theo nhiều điều kiện và quan sát hệ thống qua dashboard.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="slide">
+                <div class="deck-label">Q&A / Reference</div>
+                <div class="slide-no">37 / 37</div>
+                <div class="content">
+                    <h2 class="reveal">Q&A & Reference</h2>
+                    <div class="reference-list reveal" style="margin-top: 30px;">
+                        <ol>
+                            <li><span class="reference-title">Filebeat overview</span><span class="reference-url"><a href="https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-overview.html">https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-overview.html</a></span></li>
+                            <li><span class="reference-title">Logstash Grok filter</span><span class="reference-url"><a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html">https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html</a></span></li>
+                            <li><span class="reference-title">Elasticsearch documents & indices</span><span class="reference-url"><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/documents-indices.html">https://www.elastic.co/guide/en/elasticsearch/reference/current/documents-indices.html</a></span></li>
+                            <li><span class="reference-title">Kibana data views</span><span class="reference-url"><a href="https://www.elastic.co/guide/en/kibana/current/data-views.html">https://www.elastic.co/guide/en/kibana/current/data-views.html</a></span></li>
+                            <li><span class="reference-title">Loki architecture overview</span><span class="reference-url"><a href="https://grafana.com/docs/loki/latest/get-started/overview/">https://grafana.com/docs/loki/latest/get-started/overview/</a></span></li>
+                            <li><span class="reference-title">Loki labels guidance</span><span class="reference-url"><a href="https://grafana.com/docs/loki/latest/get-started/labels/">https://grafana.com/docs/loki/latest/get-started/labels/</a></span></li>
+                            <li><span class="reference-title">LogQL query syntax</span><span class="reference-url"><a href="https://grafana.com/docs/loki/latest/query/">https://grafana.com/docs/loki/latest/query/</a></span></li>
+                            <li><span class="reference-title">Graylog Data Node</span><span class="reference-url"><a href="https://go2docs.graylog.org/current/downloading_and_installing_graylog/install_graylog_data_node.htm">https://go2docs.graylog.org/current/downloading_and_installing_graylog/install_graylog_data_node.htm</a></span></li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="edit-hotzone" title="Edit mode"></div>
+    <button class="edit-toggle" id="editToggle" title="Edit mode (E)">Edit</button>
+    <nav class="deck-controls" aria-label="Presentation controls">
+        <button id="prevBtn" type="button" aria-label="Previous slide">Prev</button>
+        <span id="counter">1 / 37</span>
+        <button id="nextBtn" type="button" aria-label="Next slide">Next</button>
+    </nav>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           Handles scaling, navigation, touch and wheel input.
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = Array.from(document.querySelectorAll(".slide"));
+                this.currentSlide = 0;
+                this.stage = document.getElementById("deckStage");
+                this.counter = document.getElementById("counter");
+                this.lastWheelAt = 0;
+                this.setupStageScale();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                this.setupButtons();
+                this.showSlide(0);
+            }
+
+            setupStageScale() {
+                const scale = () => {
+                    const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+                    const x = (window.innerWidth - 1920 * factor) / 2;
+                    const y = (window.innerHeight - 1080 * factor) / 2;
+                    this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+                };
+                scale();
+                window.addEventListener("resize", scale);
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener("keydown", (event) => {
+                    if (event.target.getAttribute("contenteditable") === "true") return;
+                    if (["ArrowRight", " ", "PageDown"].includes(event.key)) {
+                        event.preventDefault();
+                        this.next();
+                    }
+                    if (["ArrowLeft", "PageUp"].includes(event.key)) {
+                        event.preventDefault();
+                        this.previous();
+                    }
+                    if (event.key === "Home") this.showSlide(0);
+                    if (event.key === "End") this.showSlide(this.slides.length - 1);
+                });
+            }
+
+            setupTouchNav() {
+                let startX = 0;
+                let startY = 0;
+                document.addEventListener("touchstart", (event) => {
+                    startX = event.changedTouches[0].screenX;
+                    startY = event.changedTouches[0].screenY;
+                }, { passive: true });
+                document.addEventListener("touchend", (event) => {
+                    const dx = event.changedTouches[0].screenX - startX;
+                    const dy = event.changedTouches[0].screenY - startY;
+                    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+                        dx < 0 ? this.next() : this.previous();
+                    }
+                }, { passive: true });
+            }
+
+            setupWheelNav() {
+                document.addEventListener("wheel", (event) => {
+                    const now = Date.now();
+                    if (now - this.lastWheelAt < 650) return;
+                    this.lastWheelAt = now;
+                    event.deltaY > 0 ? this.next() : this.previous();
+                }, { passive: true });
+            }
+
+            setupButtons() {
+                document.getElementById("prevBtn").addEventListener("click", () => this.previous());
+                document.getElementById("nextBtn").addEventListener("click", () => this.next());
+            }
+
+            showSlide(index) {
+                this.currentSlide = Math.max(0, Math.min(index, this.slides.length - 1));
+                this.slides.forEach((slide, i) => {
+                    slide.classList.toggle("active", i === this.currentSlide);
+                    slide.classList.toggle("visible", i === this.currentSlide);
+                });
+                this.counter.textContent = `${this.currentSlide + 1} / ${this.slides.length}`;
+                window.location.hash = `slide-${this.currentSlide + 1}`;
+            }
+
+            next() {
+                this.showSlide(this.currentSlide + 1);
+            }
+
+            previous() {
+                this.showSlide(this.currentSlide - 1);
+            }
+        }
+
+        /* ===========================================
+           INLINE EDITOR
+           Enables quick text fixes in the browser and stores them locally.
+           =========================================== */
+        class InlineEditor {
+            constructor() {
+                this.isActive = false;
+                this.editables = Array.from(document.querySelectorAll("h1, h2, h3, p, li, td, th, pre, .chip, .deck-label"));
+                this.storageKey = `frontend-slides-edits:${location.pathname}`;
+                this.load();
+            }
+
+            toggleEditMode() {
+                this.isActive = !this.isActive;
+                document.getElementById("editToggle").classList.toggle("active", this.isActive);
+                this.editables.forEach((element, index) => {
+                    element.setAttribute("data-edit-id", index);
+                    element.setAttribute("contenteditable", this.isActive ? "true" : "false");
+                });
+                if (!this.isActive) this.save();
+            }
+
+            save() {
+                const payload = {};
+                this.editables.forEach((element, index) => {
+                    payload[index] = element.innerHTML;
+                });
+                localStorage.setItem(this.storageKey, JSON.stringify(payload));
+            }
+
+            load() {
+                const raw = localStorage.getItem(this.storageKey);
+                if (!raw) return;
+                try {
+                    const payload = JSON.parse(raw);
+                    this.editables.forEach((element, index) => {
+                        if (payload[index]) element.innerHTML = payload[index];
+                    });
+                } catch {
+                    localStorage.removeItem(this.storageKey);
+                }
+            }
+        }
+
+        const presentation = new SlidePresentation();
+        const editor = new InlineEditor();
+
+        /* ===========================================
+           EDIT TOGGLE VISIBILITY
+           Uses JS hover delay so the button does not disappear mid-click.
+           =========================================== */
+        const hotzone = document.querySelector(".edit-hotzone");
+        const editToggle = document.getElementById("editToggle");
+        let hideTimeout = null;
+
+        hotzone.addEventListener("mouseenter", () => {
+            clearTimeout(hideTimeout);
+            editToggle.classList.add("show");
+        });
+        hotzone.addEventListener("mouseleave", () => {
+            hideTimeout = setTimeout(() => {
+                if (!editor.isActive) editToggle.classList.remove("show");
+            }, 400);
+        });
+        editToggle.addEventListener("mouseenter", () => clearTimeout(hideTimeout));
+        editToggle.addEventListener("mouseleave", () => {
+            hideTimeout = setTimeout(() => {
+                if (!editor.isActive) editToggle.classList.remove("show");
+            }, 400);
+        });
+        hotzone.addEventListener("click", () => editor.toggleEditMode());
+        editToggle.addEventListener("click", () => editor.toggleEditMode());
+        document.addEventListener("keydown", (event) => {
+            if ((event.key === "e" || event.key === "E") && event.target.getAttribute("contenteditable") !== "true") {
+                editor.toggleEditMode();
+            }
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+                event.preventDefault();
+                editor.save();
+            }
+        });
+    </script>
+</body>
+</html>
